@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIEP.Application.Api.Blueprint", "AIEP.Application.Api.Blueprint\AIEP.Application.Api.Blueprint.csproj", "{78B6C616-D05F-4F13-82A6-FB32F0E52DDC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIEP.Application.Logic", "AIEP.Application.Logic\AIEP.Application.Logic.csproj", "{37762805-D77D-40EE-910B-84C216D7CABB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIEP.Application.Repository", "AIEP.Application.Repository\AIEP.Application.Repository.csproj", "{1CE7B5F2-DA5B-4D1E-A255-1D06F8953C6A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIEP.Application.Model", "AIEP.Application.Model\AIEP.Application.Model.csproj", "{17179B57-FC9D-4B41-B160-E963C00397A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIEP.Domain.DataBlueprint", "AIEP.Domain.DataBlueprint\AIEP.Domain.DataBlueprint.csproj", "{8FC0F9CF-DD90-4FCC-BCCE-D182BC24CFC2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIEP.Test", "AIEP.Test\AIEP.Test.csproj", "{CFF886A1-82F8-41D2-A865-865EFEA20EE6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{78B6C616-D05F-4F13-82A6-FB32F0E52DDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78B6C616-D05F-4F13-82A6-FB32F0E52DDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78B6C616-D05F-4F13-82A6-FB32F0E52DDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78B6C616-D05F-4F13-82A6-FB32F0E52DDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37762805-D77D-40EE-910B-84C216D7CABB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37762805-D77D-40EE-910B-84C216D7CABB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37762805-D77D-40EE-910B-84C216D7CABB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37762805-D77D-40EE-910B-84C216D7CABB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CE7B5F2-DA5B-4D1E-A255-1D06F8953C6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CE7B5F2-DA5B-4D1E-A255-1D06F8953C6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CE7B5F2-DA5B-4D1E-A255-1D06F8953C6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CE7B5F2-DA5B-4D1E-A255-1D06F8953C6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17179B57-FC9D-4B41-B160-E963C00397A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17179B57-FC9D-4B41-B160-E963C00397A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17179B57-FC9D-4B41-B160-E963C00397A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17179B57-FC9D-4B41-B160-E963C00397A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FC0F9CF-DD90-4FCC-BCCE-D182BC24CFC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FC0F9CF-DD90-4FCC-BCCE-D182BC24CFC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FC0F9CF-DD90-4FCC-BCCE-D182BC24CFC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FC0F9CF-DD90-4FCC-BCCE-D182BC24CFC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFF886A1-82F8-41D2-A865-865EFEA20EE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFF886A1-82F8-41D2-A865-865EFEA20EE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFF886A1-82F8-41D2-A865-865EFEA20EE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFF886A1-82F8-41D2-A865-865EFEA20EE6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

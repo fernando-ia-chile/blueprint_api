@@ -1,0 +1,19 @@
+# Normaliza saltos de línea: el repo guarda LF; el working copy usa el del SO.
+* text=auto
+
+*.cs        text diff=csharp
+*.csproj    text
+*.sln       text eol=crlf
+*.json      text
+*.config    text
+*.xml       text
+*.yml       text
+*.md        text
+*.sql       text
+Dockerfile  text
+*.sh        text eol=lf
+
+*.png       binary
+*.jpg       binary
+*.ico       binary
+*.dll       binary

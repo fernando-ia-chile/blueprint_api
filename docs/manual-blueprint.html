@@ -1,0 +1,1280 @@
+<title>Manual del Blueprint AIEP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+
+<style>
+  /* ===== Tokens: light (bare :root = the un-stamped default) ===== */
+  :root {
+    --bg:        #f7f9fb;
+    --surface:   #ffffff;
+    --sunken:    #eef2f6;
+    --code-bg:   #f1f4f8;
+    --border:    #dbe3ec;
+    --border-strong: #c4d0dd;
+    --text:      #15202c;
+    --text-muted:#556676;
+    --accent:    #00377e;
+    --accent-ink:#00377e;
+    --accent-soft:#e6eef8;
+    --danger:    #a5231f;
+    --danger-soft:#f8e9e8;
+    --ok:        #1e6f34;
+    --ok-soft:   #e6f1e8;
+    --shadow:    0 1px 2px rgba(15,32,44,.05), 0 8px 24px -12px rgba(15,32,44,.12);
+  }
+  /* ===== Tokens: dark via OS setting, only when no explicit light choice ===== */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #0d151e;
+      --surface:   #131e29;
+      --sunken:    #0a121b;
+      --code-bg:   #0b131c;
+      --border:    #253340;
+      --border-strong: #33475a;
+      --text:      #e3e9f0;
+      --text-muted:#93a3b3;
+      --accent:    #6ea9e6;
+      --accent-ink:#a8ccf1;
+      --accent-soft:#15263a;
+      --danger:    #ef8f8b;
+      --danger-soft:#2b1a1b;
+      --ok:        #74c187;
+      --ok-soft:   #14251a;
+      --shadow:    0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.55);
+    }
+  }
+  /* ===== Tokens: explicit dark choice wins in the other direction ===== */
+  :root[data-theme="dark"] {
+    --bg:        #0d151e;
+    --surface:   #131e29;
+    --sunken:    #0a121b;
+    --code-bg:   #0b131c;
+    --border:    #253340;
+    --border-strong: #33475a;
+    --text:      #e3e9f0;
+    --text-muted:#93a3b3;
+    --accent:    #6ea9e6;
+    --accent-ink:#a8ccf1;
+    --accent-soft:#15263a;
+    --danger:    #ef8f8b;
+    --danger-soft:#2b1a1b;
+    --ok:        #74c187;
+    --ok-soft:   #14251a;
+    --shadow:    0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.55);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 1.5rem; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent-ink); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 2px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+
+  /* ===== Masthead ===== */
+  .masthead {
+    border-bottom: 1px solid var(--border);
+    background:
+      linear-gradient(180deg, var(--accent-soft), transparent 70%),
+      var(--surface);
+  }
+  .masthead-inner {
+    max-width: 78rem;
+    margin: 0 auto;
+    padding: 3.25rem 1.5rem 2.5rem;
+  }
+  .kicker {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .72rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    margin: 0 0 .9rem;
+  }
+  .masthead h1 {
+    font-size: clamp(1.9rem, 1.2rem + 2.6vw, 3rem);
+    line-height: 1.08;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    text-wrap: balance;
+    margin: 0 0 .75rem;
+  }
+  .masthead .lead {
+    font-size: 1.075rem;
+    color: var(--text-muted);
+    max-width: 62ch;
+    margin: 0 0 1.5rem;
+  }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .5rem .5rem;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .78rem;
+  }
+  .chip {
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    padding: .18rem .7rem;
+    color: var(--text-muted);
+    background: var(--surface);
+  }
+
+  /* ===== Layout ===== */
+  .layout {
+    max-width: 78rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 5rem;
+    display: grid;
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: 3rem;
+  }
+  .toc {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    font-size: .875rem;
+    padding-right: .25rem;
+  }
+  .toc h2 {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .68rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 .65rem;
+  }
+  .toc ol { list-style: none; margin: 0 0 1.4rem; padding: 0; }
+  .toc li { margin: .1rem 0; }
+  .toc a {
+    display: block;
+    padding: .28rem .55rem;
+    border-radius: 6px;
+    color: var(--text-muted);
+    border-left: 2px solid transparent;
+  }
+  .toc a:hover { color: var(--text); background: var(--sunken); text-decoration: none; }
+  .toc a.active { color: var(--accent-ink); border-left-color: var(--accent); background: var(--accent-soft); font-weight: 500; }
+  .toc .num { font-family: "IBM Plex Mono", monospace; font-size: .78em; color: var(--accent-ink); margin-right: .4rem; }
+
+  main { min-width: 0; }
+  main > section { scroll-margin-top: 1.5rem; }
+  main > section + section {
+    margin-top: 3.25rem;
+    padding-top: 3.25rem;
+    border-top: 1px solid var(--border);
+  }
+
+  section > h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -.015em;
+    line-height: 1.2;
+    text-wrap: balance;
+    margin: 0 0 .35rem;
+    scroll-margin-top: 1.5rem;
+  }
+  .sec-kicker {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .7rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    display: block;
+    margin-bottom: .5rem;
+  }
+  h3 {
+    font-size: 1.12rem;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    margin: 2.1rem 0 .6rem;
+  }
+  h4 {
+    font-size: .95rem;
+    font-weight: 600;
+    margin: 1.5rem 0 .4rem;
+  }
+  p, li { max-width: 72ch; }
+  section p { margin: .7rem 0; }
+  ul, ol { padding-left: 1.25rem; }
+  li { margin: .3rem 0; }
+  strong { font-weight: 600; }
+
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .86em;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: .08em .38em;
+    word-break: break-word;
+  }
+  pre {
+    margin: 1rem 0;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 1rem 1.15rem;
+    overflow-x: auto;
+    font-size: .82rem;
+    line-height: 1.6;
+  }
+  pre code {
+    background: none; border: 0; padding: 0; font-size: inherit;
+    white-space: pre; word-break: normal;
+  }
+  pre .c { color: var(--text-muted); font-style: italic; }
+  .filename {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .74rem;
+    letter-spacing: .04em;
+    color: var(--text-muted);
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    padding: .4rem .9rem;
+    display: inline-block;
+    margin: 1rem 0 0;
+  }
+  .filename + pre { margin-top: 0; border-top-left-radius: 0; border-top-right-radius: 0; }
+
+  /* ===== Tables ===== */
+  .table-wrap { overflow-x: auto; margin: 1.1rem 0; border: 1px solid var(--border); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: .875rem; }
+  th, td { text-align: left; padding: .6rem .85rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th {
+    background: var(--sunken);
+    font-weight: 600;
+    font-size: .78rem;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: 0; }
+  td code { font-size: .82em; white-space: nowrap; }
+  td:first-child { white-space: nowrap; }
+
+  /* ===== Callouts ===== */
+  .note, .warn, .tip {
+    margin: 1.2rem 0;
+    padding: .85rem 1.1rem;
+    border-radius: 8px;
+    border-left: 3px solid;
+    font-size: .93rem;
+  }
+  .note p, .warn p, .tip p { margin: .4rem 0; max-width: none; }
+  .note p:first-child, .warn p:first-child, .tip p:first-child { margin-top: 0; }
+  .note p:last-child, .warn p:last-child, .tip p:last-child { margin-bottom: 0; }
+  .note { background: var(--accent-soft); border-color: var(--accent); }
+  .warn { background: var(--danger-soft); border-color: var(--danger); }
+  .tip  { background: var(--ok-soft); border-color: var(--ok); }
+  .label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .66rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    font-weight: 600;
+    display: block;
+    margin-bottom: .3rem;
+  }
+  .note .label { color: var(--accent-ink); }
+  .warn .label { color: var(--danger); }
+  .tip .label  { color: var(--ok); }
+
+  /* ===== Numbered tutorial steps ===== */
+  ol.steps { list-style: none; counter-reset: step; padding: 0; margin: 1.5rem 0 0; }
+  ol.steps > li {
+    counter-increment: step;
+    position: relative;
+    padding: 0 0 2rem 3.25rem;
+    max-width: none;
+  }
+  ol.steps > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: -.1rem;
+    width: 2.25rem; height: 2.25rem;
+    display: grid; place-items: center;
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 600;
+    font-size: .95rem;
+    color: var(--surface);
+    background: var(--accent);
+    border-radius: 8px;
+  }
+  ol.steps > li::after {
+    content: "";
+    position: absolute;
+    left: 1.09rem; top: 2.6rem; bottom: .4rem;
+    width: 2px;
+    background: var(--border);
+  }
+  ol.steps > li:last-child::after { display: none; }
+  ol.steps > li > h3 { margin-top: .1rem; }
+  :root[data-theme="dark"] ol.steps > li::before,
+  :root:not([data-theme="light"]) ol.steps > li::before { color: var(--sunken); }
+
+  .pill {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .72rem;
+    padding: .1rem .5rem;
+    border-radius: 5px;
+    background: var(--sunken);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  hr.soft { border: 0; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  .toc-toggle { display: none; }
+
+  @media (max-width: 60rem) {
+    .layout { grid-template-columns: 1fr; gap: 1.5rem; padding-top: 1.5rem; }
+    .toc {
+      position: static; max-height: none;
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 1rem 1.15rem; background: var(--surface);
+    }
+    .toc ol { margin-bottom: .75rem; }
+    .masthead-inner { padding: 2.25rem 1.5rem 1.75rem; }
+  }
+  @media (max-width: 40rem) {
+    body { font-size: 15px; }
+    pre { font-size: .76rem; }
+  }
+</style>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="kicker">AIEP · Plataforma de servicios · .NET 8</p>
+    <h1>Manual del Blueprint AIEP</h1>
+    <p class="lead">Cómo construir un microservicio real sobre el blueprint: la arquitectura en cinco minutos, la configuración sin secretos, y el camino completo de una feature —entidad, modelo, repositorio Oracle/SQL&nbsp;Server, mapper y endpoint— con un tutorial de punta a punta.</p>
+    <div class="meta-row">
+      <span class="chip">solución: ApiBlueprint.sln</span>
+      <span class="chip">TargetFramework: net8.0</span>
+      <span class="chip">canónico: docs/MANUAL-DESARROLLADOR.md</span>
+      <span class="chip">v1 · 2026-09-09</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="Contenido">
+    <h2>Fundamentos</h2>
+    <ol>
+      <li><a href="#arquitectura"><span class="num">1</span>Arquitectura en 5 minutos</a></li>
+      <li><a href="#configuracion"><span class="num">2</span>Configuración (appsettings)</a></li>
+      <li><a href="#motor"><span class="num">3</span>Motor: Oracle vs SQL Server</a></li>
+    </ol>
+    <h2>Construir una feature</h2>
+    <ol>
+      <li><a href="#entidades"><span class="num">4</span>Entidades</a></li>
+      <li><a href="#modelos"><span class="num">5</span>Modelos (DTOs)</a></li>
+      <li><a href="#mapper"><span class="num">6</span>El mapper</a></li>
+      <li><a href="#repositorio"><span class="num">7</span>Repositorio</a></li>
+      <li><a href="#logica"><span class="num">8</span>Lógica de negocio</a></li>
+      <li><a href="#endpoints"><span class="num">9</span>Endpoints</a></li>
+      <li><a href="#errores"><span class="num">10</span>Manejo de errores</a></li>
+    </ol>
+    <h2>Operación</h2>
+    <ol>
+      <li><a href="#seguridad"><span class="num">11</span>Seguridad</a></li>
+      <li><a href="#logging"><span class="num">12</span>Logging</a></li>
+      <li><a href="#pruebas"><span class="num">13</span>Pruebas</a></li>
+    </ol>
+    <h2>Práctica</h2>
+    <ol>
+      <li><a href="#tutorial"><span class="num">14</span>Tutorial: feature “Alumno” (Banner)</a></li>
+      <li><a href="#aristas"><span class="num">15</span>Aristas frecuentes / FAQ</a></li>
+      <li><a href="#cheatsheet"><span class="num">16</span>Referencia rápida</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section id="intro">
+      <p><strong>Para quién es esto.</strong> Para el desarrollador que va a clonar el blueprint y publicar un microservicio nuevo. Asume C#/.NET y SQL; no asume conocimiento previo de este repo.</p>
+      <p><strong>Cómo leerlo.</strong> Las secciones 1–3 son de lectura obligada una sola vez. Las secciones 4–10 son la referencia que abrirás cada vez que agregues un endpoint. La sección 14 es el tutorial: si tienes prisa, cópialo y adapta.</p>
+      <div class="note">
+        <span class="label">Convención</span>
+        <p>En todo el manual, <code>Blueprint</code> / <code>Recurso</code> son los nombres de ejemplo del repo base. Al clonar renombras <code>Blueprint → MiServicio</code> (ver <code>README.md</code>) y reemplazas la feature <code>Recurso</code> por la tuya. El tutorial usa <code>Alumno</code> (ERP Banner) como caso real.</p>
+      </div>
+    </section>
+
+    <section id="arquitectura">
+      <span class="sec-kicker">Fundamento 1</span>
+      <h2>Arquitectura en 5 minutos</h2>
+      <p>Seis proyectos, una dependencia en línea recta. Cada capa tiene una única responsabilidad y sólo conoce a la de abajo.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Proyecto</th><th>Responsabilidad</th><th>Depende de</th></tr></thead>
+          <tbody>
+            <tr><td><code>AIEP.Application.Api.*</code></td><td>Host web: <code>Program.cs</code>, controllers v1, middlewares, filtros, perfil de AutoMapper, Swagger.</td><td>Logic</td></tr>
+            <tr><td><code>AIEP.Application.Logic</code></td><td>Reglas de negocio. Clases <code>*Logic</code> concretas (sin interfaz). Validan, orquestan, mapean entidad → DTO.</td><td>Model, Repository</td></tr>
+            <tr><td><code>AIEP.Application.Repository</code></td><td>Acceso a datos sin ORM: <code>IDbConnectionFactory</code>, <code>BaseRepository</code>, <code>DbReaderMapper</code>, repos concretos.</td><td>Domain, Model</td></tr>
+            <tr><td><code>AIEP.Application.Model</code></td><td>DTOs de entrada/salida + jerarquía de excepciones + <code>ExceptionResponse</code>.</td><td>—</td></tr>
+            <tr><td><code>AIEP.Domain.Data*</code></td><td>Entidades de datos: POCOs <code>*Entity</code> con <code>[Column]</code>. Sin lógica.</td><td>—</td></tr>
+            <tr><td><code>AIEP.Test</code></td><td>Pruebas NUnit + Moq.</td><td>todos</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>El recorrido de un <code>GET</code></h3>
+      <pre><code>HTTP GET /api/v1/recurso?codigo=ABC
+      │
+      ▼
+[middleware]  ApiKeyMiddleware        valida header x-xmsbs-apikey
+[filtro]      RequiredScope           valida scope del token (Azure AD)
+[filtro]      RequireClaim            valida claim "tid" ∈ Conf:ListTenantId
+[filtro]      ExceptionHandler        envuelve la acción; traduce excepciones → HTTP
+      │
+      ▼
+RecursoController.Get(request, ct)
+      │  request?.codigo
+      ▼
+RecursoLogic.GetRecursos(codigo, ct)      ← valida parámetro, loguea
+      │
+      ▼
+IRecursoRepository.GetRecursosAsync(codigo, ct)
+      │  OpenConnectionAsync → CreateStoredProcCommand → AddParameter / AddRefCursor
+      │  ExecuteReaderAsync → MapAsync&lt;RecursoEntity&gt; → NextResultAsync → MapAsync&lt;...Detalle&gt;
+      │  ThrowIfSpError(P_CODIGO, P_MENSAJE)
+      ▼
+List&lt;RecursoEntity&gt;   ── AutoMapper ──▶  List&lt;Recurso&gt; (DTO)
+      │
+      ▼
+200 OK  [ { "Codigo Recurso": "ABC", ... } ]</code></pre>
+
+      <h3>Ciclos de vida en DI</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Servicio</th><th>Lifetime</th><th>Por qué</th></tr></thead>
+          <tbody>
+            <tr><td><code>IDbConnectionFactory</code></td><td><span class="pill">Singleton</span></td><td>Stateless. Resuelve el proveedor y la cadena una vez; cada conexión se crea por llamada.</td></tr>
+            <tr><td><code>I*Repository</code></td><td><span class="pill">Scoped</span></td><td>Vive lo que dura la request; no comparte estado entre requests.</td></tr>
+            <tr><td><code>*Logic</code></td><td><span class="pill">Scoped</span></td><td>Igual que el repo que consume.</td></tr>
+            <tr><td><code>IMapper</code></td><td><span class="pill">Singleton</span></td><td>Lo registra AutoMapper; la configuración es inmutable.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>El registro vive en <code>AIEP.Application.Repository/ServiceCollectionExtensions.cs</code> (<code>AddBlueprintRepository</code>) y en <code>Program.cs</code>.</p>
+    </section>
+
+    <section id="configuracion">
+      <span class="sec-kicker">Fundamento 2</span>
+      <h2>Configuración (appsettings)</h2>
+      <p>El principio rector: <strong>los secretos no viajan en archivos</strong>. <code>appsettings.json</code> sólo lleva valores no sensibles. La cadena de conexión y la API key las entrega Azure App Configuration como referencias a Key Vault, autenticado con <code>DefaultAzureCredential</code>.</p>
+
+      <h3>Claves y su origen</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Clave</th><th>Ejemplo / valor</th><th>Origen</th></tr></thead>
+          <tbody>
+            <tr><td><code>AzureAd:TenantId</code> / <code>ClientId</code></td><td><code>&lt;guid&gt;</code></td><td>appsettings (no sensible; <strong>sin</strong> <code>ClientSecret</code>)</td></tr>
+            <tr><td><code>AzureAppConfig:Endpoint</code></td><td><code>https://appcs-aiep-desa.azconfig.io</code></td><td>appsettings; vacío en local</td></tr>
+            <tr><td><code>Database:Provider</code></td><td><code>Oracle</code> | <code>SqlServer</code></td><td>appsettings / App Config / env</td></tr>
+            <tr><td><code>Database:CommandTimeout</code></td><td><code>300</code> (segundos)</td><td>appsettings / App Config</td></tr>
+            <tr><td><code>Database:ConnectionStringName</code></td><td><code>BlueprintDb</code></td><td>appsettings</td></tr>
+            <tr><td><code>ConnectionStrings:BlueprintDb</code></td><td>cadena Oracle o SQL Server</td><td><strong>Key Vault</strong> vía App Config · local: user-secrets</td></tr>
+            <tr><td><code>Conf:ApiKey</code></td><td>GUID / secreto</td><td><strong>Key Vault</strong> vía App Config · local: user-secrets</td></tr>
+            <tr><td><code>Conf:ApiKeyHeaderName</code></td><td><code>x-xmsbs-apikey</code></td><td>appsettings</td></tr>
+            <tr><td><code>Conf:StoredProcedureName</code></td><td><code>PKG_BLUEPRINT.P_GET_RECURSO</code></td><td>appsettings / App Config (por entorno)</td></tr>
+            <tr><td><code>Conf:ListTenantId</code></td><td><code>[ "&lt;guid&gt;" ]</code></td><td>appsettings / App Config</td></tr>
+            <tr><td><code>Cors:AllowedOrigins</code></td><td><code>[ "https://servicioalumno.aiep.cl" ]</code></td><td>appsettings</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Precedencia (gana el último)</h3>
+      <pre><code>appsettings.json
+  → appsettings.{Environment}.json
+    → user-secrets            (solo Development)
+      → variables de entorno  (ConnectionStrings__BlueprintDb, Database__Provider, Conf__ApiKey)
+        → Azure App Configuration + Key Vault   (entornos desplegados: gana)</code></pre>
+
+      <h3>Desarrollo local (sin Azure)</h3>
+      <p>En <code>Development</code>, <code>AzureAppConfig:Endpoint</code> está vacío y App Config se omite. Define lo sensible con user-secrets:</p>
+      <pre><code>cd AIEP.Application.Api.Blueprint
+dotnet user-secrets set "ConnectionStrings:BlueprintDb" "Data Source=...;User Id=...;Password=...;"
+dotnet user-secrets set "Conf:ApiKey" "CD1462A2-F8D0-49D3-91A2-123756434907"</code></pre>
+      <p>Elige el motor en <code>appsettings.Development.json</code> (<code>"Database": { "Provider": "SqlServer" }</code>) o con <code>Database__Provider=Oracle</code>.</p>
+
+      <h3>Azure App Configuration: esquema de claves</h3>
+      <p>Prefijo por servicio <code>Blueprint:</code> (un store compartido por varios microservicios) y <strong>label = entorno</strong>. El host hace dos <code>Select</code>: primero sin label (valores compartidos), luego el del entorno (override).</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Clave en App Config</th><th>Tipo</th></tr></thead>
+          <tbody>
+            <tr><td><code>Blueprint:Database:Provider</code></td><td>valor</td></tr>
+            <tr><td><code>Blueprint:Conf:StoredProcedureName</code></td><td>valor</td></tr>
+            <tr><td><code>Blueprint:ConnectionStrings:BlueprintDb</code></td><td>Key Vault reference → <code>blueprint-db-connectionstring</code></td></tr>
+            <tr><td><code>Blueprint:Conf:ApiKey</code></td><td>Key Vault reference → <code>blueprint-api-key</code></td></tr>
+            <tr><td><code>Blueprint:Sentinel</code></td><td>valor (cambiarlo dispara el refresco cada 5 min)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <span class="label">Identidad</span>
+        <p>La identidad que ejecuta el servicio necesita los roles <code>App Configuration Data Reader</code> y <code>Key Vault Secrets User</code>. Funciona con Managed Identity (Azure) y con la identidad de <strong>Azure Arc</strong> (on-prem): <code>DefaultAzureCredential</code> la detecta sola. En local usa <code>az login</code> o Visual Studio. Detalle completo en <code>README.md</code>.</p>
+      </div>
+
+      <h3>Opciones tipadas</h3>
+      <p>No leas <code>IConfiguration</code> crudo en tu código. Usa las clases de opciones ya validadas al arranque:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Clase</th><th>Sección</th><th>Se inyecta como</th></tr></thead>
+          <tbody>
+            <tr><td><code>DatabaseOptions</code></td><td><code>Database</code></td><td><code>IOptions&lt;DatabaseOptions&gt;</code></td></tr>
+            <tr><td><code>ApiKeyOptions</code></td><td><code>Conf</code></td><td><code>IOptionsMonitor&lt;ApiKeyOptions&gt;</code> (refrescable)</td></tr>
+            <tr><td><code>TenantOptions</code></td><td><code>Conf</code></td><td><code>IOptionsMonitor&lt;TenantOptions&gt;</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="motor">
+      <span class="sec-kicker">Fundamento 3</span>
+      <h2>Motor: Oracle vs SQL Server</h2>
+      <p>El motor se elige <strong>en tiempo de ejecución</strong> con <code>Database:Provider</code>. Tu repositorio se escribe <strong>una sola vez</strong> contra <code>System.Data.Common</code> (<code>DbConnection</code>, <code>DbCommand</code>, <code>DbParameter</code>); la fábrica resuelve el driver concreto.</p>
+
+      <pre><code>IDbConnectionFactory
+ ├─ Provider            Oracle | SqlServer   (de DatabaseOptions)
+ ├─ CommandTimeout      segundos
+ ├─ CreateConnection()          → OracleConnection | SqlConnection
+ ├─ PrepareStoredProcCommand()  → Oracle: BindByName = true ; SQL: no-op
+ └─ AddRefCursor(cmd, name)     → Oracle: OracleParameter RefCursor OUT ; SQL: null</code></pre>
+
+      <p>Los únicos archivos que <code>using Oracle.ManagedDataAccess.Client</code> / <code>Microsoft.Data.SqlClient</code> son <code>OracleProviderAdapter.cs</code> y <code>SqlServerProviderAdapter.cs</code>. No los toques desde tu repo.</p>
+
+      <h3>Qué cambia entre motores</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aspecto</th><th>Oracle</th><th>SQL Server</th></tr></thead>
+          <tbody>
+            <tr><td>Múltiples result sets</td><td>Cada uno es un <code>OUT SYS_REFCURSOR</code></td><td><code>SELECT …; SELECT …;</code> consecutivos</td></tr>
+            <tr><td>En el repo</td><td><code>AddRefCursor(cmd, "C_ALUMNOS")</code> por cada cursor</td><td>Esas llamadas son no-op (devuelven <code>null</code>)</td></tr>
+            <tr><td>Binding de parámetros</td><td>Por nombre — requiere <code>BindByName=true</code> (lo hace la fábrica)</td><td>Por nombre nativo</td></tr>
+            <tr><td>Parámetros de entrada</td><td><code>P_TP_DOC</code> (sin <code>@</code>)</td><td><code>@P_TP_DOC</code> — <code>AddParameter</code> acepta ambos estilos, define uno y sé consistente</td></tr>
+            <tr><td>Tipo de <code>NUMBER</code></td><td>llega como <code>decimal</code></td><td><code>int</code>/<code>decimal</code>/<code>bit</code> según columna</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="warn">
+        <span class="label">Tres reglas de oro</span>
+        <p><strong>1. Orden de parámetros:</strong> agrega <em>todos</em> los <code>AddRefCursor</code> <strong>antes</strong> que los escalares de salida (<code>P_CODIGO</code>, <code>P_MENSAJE</code>). En Oracle, <code>NextResultAsync()</code> recorre los cursores en el orden en que se agregaron.</p>
+        <p><strong>2. OUT params después del reader:</strong> los valores de <code>P_CODIGO</code>/<code>P_MENSAJE</code> sólo están disponibles cuando el <code>DbDataReader</code> se cerró. Léelos <em>fuera</em> del bloque <code>await using (var reader = …)</code>.</p>
+        <p><strong>3. Orden canónico de result sets:</strong> define un orden (p. ej. Alumno → Programas → Semestres) y respétalo idéntico en el SP de Oracle y en el de SQL Server. Documéntalo en el XML-doc del método y en los <code>.sql</code> de <code>db/</code>.</p>
+      </div>
+
+      <h3>Cómo cambiar de motor</h3>
+      <pre><code><span class="c"># local</span>
+$env:Database__Provider = "Oracle"     <span class="c"># o "SqlServer"</span>
+dotnet run
+
+<span class="c"># entorno desplegado: cambiar Blueprint:Database:Provider en App Configuration</span>
+<span class="c"># (con el label del entorno) y tocar Blueprint:Sentinel para refrescar.</span></code></pre>
+    </section>
+
+    <section id="entidades">
+      <span class="sec-kicker">Feature · paso a</span>
+      <h2>Entidades</h2>
+      <p>Una entidad es un POCO que representa <strong>una fila de un result set</strong>. Vive en <code>AIEP.Domain.Data*/Entities</code>. Sólo las propiedades con <code>[Column("NOMBRE")]</code> se mapean; el nombre debe coincidir con la columna del SP (sin distinguir mayúsculas).</p>
+
+      <span class="filename">AIEP.Domain.DataBlueprint/Entities/AlumnoEntity.cs</span>
+<pre><code>using System.ComponentModel.DataAnnotations.Schema;
+
+namespace AIEP.Domain.DataBlueprint.Entities;
+
+public class AlumnoEntity
+{
+    [Column("PIDM")]              public int     Pidm { get; set; }
+    [Column("ID_BANNER")]         public string? IdBanner { get; set; }
+    [Column("RUT")]               public string? Rut { get; set; }
+    [Column("NOMBRES")]           public string? Nombres { get; set; }
+    [Column("APELLIDO_PATERNO")]  public string? ApellidoPaterno { get; set; }
+    [Column("APELLIDO_MATERNO")]  public string? ApellidoMaterno { get; set; }
+    [Column("EMAIL")]             public string? Email { get; set; }
+    [Column("FECHA_NACIMIENTO")]  public DateTime? FechaNacimiento { get; set; }
+
+    <span class="c">// 'Y'/'N' o 1/0 en la BD → bool en C#</span>
+    [Column("VIGENTE")]           public bool    Vigente { get; set; }
+
+    <span class="c">// Propiedad de navegación: SIN [Column] ⇒ el mapper la ignora.</span>
+    <span class="c">// La llenas tú en el repositorio a partir de otro result set.</span>
+    public List&lt;ProgramaAlumnoEntity&gt; Programas { get; set; } = new();
+}</code></pre>
+
+      <h3>Nombres de columna con Banner</h3>
+      <p>Banner expone nombres crudos (<code>SPRIDEN_PIDM</code>, <code>SPRIDEN_ID</code>, <code>SGBSTDN_STST_CODE</code>). No los uses tal cual en la entidad: haz que <strong>el stored procedure</strong> devuelva alias limpios (<code>PIDM</code>, <code>ID_BANNER</code>, <code>ESTADO</code>) y mapea contra esos alias. La entidad queda legible y desacoplada del esquema físico.</p>
+
+      <h3>Tipos y conversiones que soporta <code>DbReaderMapper</code></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Destino en C#</th><th>Qué acepta de la BD</th></tr></thead>
+          <tbody>
+            <tr><td><code>string</code></td><td>cualquier valor (usa <code>ToString</code> invariante si hace falta)</td></tr>
+            <tr><td><code>bool</code></td><td><code>"Y"/"N"</code>, <code>"1"/"0"</code>, <code>"true"/"false"</code>, <code>1/0</code> numérico, <code>bit</code></td></tr>
+            <tr><td><code>int/long/short/byte/decimal/double</code></td><td>numéricos (incluye <code>NUMBER</code> de Oracle vía <code>Convert.ChangeType</code>)</td></tr>
+            <tr><td><code>DateTime</code>, <code>DateTimeOffset</code>, <code>TimeSpan</code></td><td>fecha/hora del proveedor o texto parseable</td></tr>
+            <tr><td><code>Guid</code></td><td><code>Guid</code>, <code>byte[]</code> (16), o string</td></tr>
+            <tr><td><code>enum</code></td><td>entero o nombre (case-insensitive)</td></tr>
+            <tr><td><code>T?</code> (nullable)</td><td>todo lo anterior; <code>NULL</code>/<code>DBNull</code> ⇒ queda el <code>default</code> de la propiedad</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <span class="label">Nulos</span>
+        <p>Si la columna viene <code>NULL</code>, la propiedad <strong>no se asigna</strong> (mantiene su valor por defecto). Por eso un <code>int</code> no-nullable con valor <code>NULL</code> en la BD te dará <code>0</code>: declara <code>int?</code> si "sin dato" es distinto de "cero".</p>
+      </div>
+      <p>El escaneo de <code>[Column]</code> y la compilación de <em>setters</em> se hace <strong>una vez por tipo</strong> y se cachea (<code>ConcurrentDictionary</code> + <code>Expression</code>). No hay costo de reflexión por fila.</p>
+    </section>
+
+    <section id="modelos">
+      <span class="sec-kicker">Feature · paso b</span>
+      <h2>Modelos (DTOs)</h2>
+      <p>El DTO es <strong>el contrato con el cliente</strong>. Vive en <code>AIEP.Application.Model/Models/&lt;Feature&gt;</code>. Nunca expongas la entidad directamente: desacopla el JSON del esquema de BD y evitas filtrar campos internos (como <code>PIDM</code>).</p>
+
+      <h4>DTO de salida — <code>[JsonPropertyName]</code></h4>
+      <span class="filename">AIEP.Application.Model/Models/Alumno/Alumno.cs</span>
+<pre><code>using System.Text.Json.Serialization;
+
+namespace AIEP.Application.Model.Models.Alumno;
+
+public class Alumno
+{
+    [JsonPropertyName("RUT")]              public string? Rut { get; set; }
+    [JsonPropertyName("Nombre Completo")]  public string? NombreCompleto { get; set; }
+    [JsonPropertyName("Email")]            public string? Email { get; set; }
+    [JsonPropertyName("Vigente")]          public bool    Vigente { get; set; }
+    [JsonPropertyName("Programas")]        public List&lt;ProgramaAlumno&gt; Programas { get; set; } = new();
+}
+
+public class ProgramaAlumno
+{
+    [JsonPropertyName("Codigo")]  public string? Codigo { get; set; }
+    [JsonPropertyName("Nombre")]  public string? Nombre { get; set; }
+}</code></pre>
+
+      <h4>DTO de entrada — DataAnnotations</h4>
+      <p>El request se recibe por <code>[FromQuery]</code> (o <code>[FromBody]</code>). <code>[ApiController]</code> valida las anotaciones automáticamente y responde <code>400</code> si fallan, antes de entrar a tu acción.</p>
+      <span class="filename">AIEP.Application.Model/Models/Alumno/AlumnoRequest.cs</span>
+<pre><code>using System.ComponentModel.DataAnnotations;
+
+namespace AIEP.Application.Model.Models.Alumno;
+
+public class AlumnoRequest
+{
+    [Required]
+    [StringLength(20, MinimumLength = 1)]
+    public string? valorDocumento { get; set; }
+
+    [Required]
+    [RegularExpression("RUT|PASAPORTE|DNI")]
+    public string? tipoDocumento { get; set; }
+}</code></pre>
+
+      <div class="tip">
+        <span class="label">Regla</span>
+        <p>Entidad ≠ DTO aunque se parezcan. La entidad cambia cuando cambia el SP; el DTO cambia cuando cambia el contrato público. Mantenerlos separados es lo que te deja evolucionar uno sin romper el otro.</p>
+      </div>
+    </section>
+
+    <section id="mapper">
+      <span class="sec-kicker">Feature · paso c</span>
+      <h2>El mapper</h2>
+      <p>Se usa AutoMapper. El perfil vive en el <strong>proyecto API</strong> (<code>AIEP.Application.Api.*/Mapper/MapperConfig.cs</code>) y se descubre por el escaneo de ensamblados en <code>Program.cs</code>:</p>
+      <pre><code>builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());</code></pre>
+
+      <span class="filename">Mapper/MapperConfig.cs</span>
+<pre><code>using AIEP.Domain.DataBlueprint.Entities;
+using AutoMapper;
+using DtoAlumno = AIEP.Application.Model.Models.Alumno.Alumno;
+using DtoPrograma = AIEP.Application.Model.Models.Alumno.ProgramaAlumno;
+
+public class MapperConfig : Profile
+{
+    public MapperConfig()
+    {
+        <span class="c">// Registra el tipo anidado ANTES del contenedor.</span>
+        CreateMap&lt;DtoPrograma, ProgramaAlumnoEntity&gt;().ReverseMap();
+
+        CreateMap&lt;DtoAlumno, AlumnoEntity&gt;()
+            <span class="c">// nombres iguales se mapean solos; sólo declara lo que difiere</span>
+            .ForMember(d =&gt; d.Nombres, o =&gt; o.Ignore())
+            .ReverseMap()
+            .ForMember(d =&gt; d.NombreCompleto,
+                       o =&gt; o.MapFrom(s =&gt; $"{s.Nombres} {s.ApellidoPaterno} {s.ApellidoMaterno}".Trim()));
+    }
+}</code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Situación</th><th>Qué hacer</th></tr></thead>
+          <tbody>
+            <tr><td>Propiedades con el mismo nombre</td><td>Nada. Se mapean por convención.</td></tr>
+            <tr><td>Nombres distintos</td><td><code>.ForMember(d =&gt; d.X, o =&gt; o.MapFrom(s =&gt; s.Y))</code></td></tr>
+            <tr><td>Colección anidada (<code>List&lt;ProgramaAlumno&gt;</code>)</td><td>Registrar también <code>CreateMap</code> del tipo del elemento.</td></tr>
+            <tr><td>Ida y vuelta</td><td><code>.ReverseMap()</code>. Los <code>ForMember</code> posteriores aplican al mapa invertido.</td></tr>
+            <tr><td>Ignorar una propiedad</td><td><code>.ForMember(d =&gt; d.X, o =&gt; o.Ignore())</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>En la lógica el mapeo es una línea:</p>
+      <pre><code>return _mapper.Map&lt;List&lt;Alumno&gt;&gt;(entidades);</code></pre>
+
+      <div class="warn">
+        <span class="label">Pitfall</span>
+        <p>Si pones el <code>Profile</code> en otra capa, <code>AddAutoMapper(GetAssemblies())</code> puede no escanearlo hasta que ese ensamblado se cargue. <strong>Mantén todos los <code>Profile</code> en el proyecto API.</strong> Para verificar todos los mapas en un test: <code>new MapperConfiguration(c =&gt; c.AddProfile&lt;MapperConfig&gt;()).AssertConfigurationIsValid();</code></p>
+      </div>
+    </section>
+
+    <section id="repositorio">
+      <span class="sec-kicker">Feature · paso d</span>
+      <h2>Repositorio</h2>
+      <p>Hereda de <code>BaseRepository</code> e implementa tu interfaz. Un método público por operación. Todo <code>async</code> con <code>CancellationToken</code> y <code>await using</code>.</p>
+
+      <h3>Helpers de <code>BaseRepository</code></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Miembro</th><th>Qué hace</th></tr></thead>
+          <tbody>
+            <tr><td><code>OpenConnectionAsync(ct)</code></td><td>Crea y abre la <code>DbConnection</code> del motor activo.</td></tr>
+            <tr><td><code>CreateStoredProcCommand(conn, sp)</code></td><td><code>CommandType.StoredProcedure</code> + <code>CommandTimeout</code> + ajustes del proveedor.</td></tr>
+            <tr><td><code>AddParameter(cmd, name, value, dbType?, direction?, size?)</code></td><td>Parámetro escalar. <code>null</code> ⇒ <code>DBNull.Value</code>. <span class="pill">static</span></td></tr>
+            <tr><td><code>AddRefCursor(cmd, name)</code></td><td>Cursor OUT (Oracle) o no-op (SQL Server).</td></tr>
+            <tr><td><code>MapAsync&lt;T&gt;(reader, ct)</code></td><td>Mapea el result set actual a <code>List&lt;T&gt;</code>. <span class="pill">static</span></td></tr>
+            <tr><td><code>GetOutputString(cmd, name)</code></td><td>Lee un OUT param como texto (<code>DBNull</code> ⇒ <code>null</code>). <span class="pill">static</span></td></tr>
+            <tr><td><code>ThrowIfSpError(codigo, mensaje)</code></td><td>Traduce <code>(P_CODIGO, P_MENSAJE)</code> a excepción de negocio.</td></tr>
+            <tr><td><code>ToDataTable&lt;T&gt;(items)</code> · <code>AddStructuredParameter(...)</code></td><td>Opcionales, para Table-Valued Parameters (sólo SQL Server).</td></tr>
+            <tr><td><code>ConnectionFactory</code> · <code>Options</code> · <code>Logger</code></td><td>Propiedades protegidas.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Anatomía de un método</h3>
+      <span class="filename">AIEP.Application.Repository/Repository/Alumno/AlumnoRepository.cs</span>
+<pre><code>public sealed class AlumnoRepository : BaseRepository, IAlumnoRepository
+{
+    private readonly string _sp;
+
+    public AlumnoRepository(
+        IDbConnectionFactory factory,
+        IOptions&lt;DatabaseOptions&gt; dbOptions,
+        IConfiguration configuration,
+        ILogger&lt;AlumnoRepository&gt; logger)
+        : base(factory, dbOptions, logger)
+    {
+        _sp = configuration.GetValue&lt;string&gt;("Conf:StoredProcedureName")
+              ?? "PKG_BLUEPRINT.P_GET_ALUMNO";
+    }
+
+    public async Task&lt;List&lt;AlumnoEntity&gt;&gt; GetAlumnoAsync(
+        string valorDocumento, string tipoDocumento, CancellationToken ct = default)
+    {
+        List&lt;AlumnoEntity&gt; alumnos;
+        List&lt;ProgramaAlumnoEntity&gt; programas;
+
+        await using var conn = await OpenConnectionAsync(ct);
+        await using var cmd  = CreateStoredProcCommand(conn, _sp);
+
+        AddParameter(cmd, "P_TP_DOC",    tipoDocumento,   DbType.String, size: 20);
+        AddParameter(cmd, "P_DOCUMENTO", valorDocumento,  DbType.String, size: 20);
+
+        <span class="c">// Cursores ANTES que los escalares OUT — orden canónico: #1 alumno, #2 programas</span>
+        AddRefCursor(cmd, "C_ALUMNO");
+        AddRefCursor(cmd, "C_PROGRAMAS");
+
+        AddParameter(cmd, "P_CODIGO",  null, DbType.String, ParameterDirection.Output, size: 4000);
+        AddParameter(cmd, "P_MENSAJE", null, DbType.String, ParameterDirection.Output, size: 4000);
+
+        await using (var reader = await cmd.ExecuteReaderAsync(ct))
+        {
+            alumnos   = await MapAsync&lt;AlumnoEntity&gt;(reader, ct);
+            await reader.NextResultAsync(ct);
+            programas = await MapAsync&lt;ProgramaAlumnoEntity&gt;(reader, ct);
+        } <span class="c">// ← el reader se cierra aquí; recién ahora se pueden leer los OUT params</span>
+
+        ThrowIfSpError(GetOutputString(cmd, "P_CODIGO"), GetOutputString(cmd, "P_MENSAJE"));
+
+        <span class="c">// Ensamblado 1→N en memoria</span>
+        var porPidm = programas.ToLookup(p =&gt; p.Pidm);
+        foreach (var a in alumnos) a.Programas = porPidm[a.Pidm].ToList();
+
+        return alumnos;
+    }
+}</code></pre>
+
+      <h3>Contrato del SP: <code>P_CODIGO</code> / <code>P_MENSAJE</code></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>P_CODIGO</th><th><code>ThrowIfSpError</code> lanza</th><th>HTTP final</th></tr></thead>
+          <tbody>
+            <tr><td><code>"OK"</code> o vacío</td><td>nada</td><td>200</td></tr>
+            <tr><td>empieza con <code>"400"</code></td><td><code>DataValidationException</code></td><td>400</td></tr>
+            <tr><td>empieza con <code>"404"</code></td><td><code>NotFoundException&lt;string&gt;</code></td><td>404</td></tr>
+            <tr><td>cualquier otro</td><td><code>BusinessException</code></td><td>422</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Registrar el repo en DI</h3>
+      <span class="filename">AIEP.Application.Repository/ServiceCollectionExtensions.cs</span>
+<pre><code>public static IServiceCollection AddBlueprintRepository(this IServiceCollection services, IConfiguration configuration)
+{
+    services.AddOptions&lt;DatabaseOptions&gt;()
+            .Bind(configuration.GetSection(DatabaseOptions.SectionName))
+            .ValidateDataAnnotations();
+
+    services.AddSingleton&lt;IDbConnectionFactory, DbConnectionFactory&gt;();
+
+    services.AddScoped&lt;IRecursoRepository, RecursoRepository&gt;();
+    services.AddScoped&lt;IAlumnoRepository, AlumnoRepository&gt;();   <span class="c">// ← agrega tu repo aquí</span>
+
+    return services;
+}</code></pre>
+
+      <div class="note">
+        <span class="label">Un SP con un solo result set</span>
+        <p>Es el caso simple: una llamada a <code>MapAsync&lt;T&gt;</code>, cero <code>NextResultAsync</code>. Los <code>AddRefCursor</code> siguen siendo uno (Oracle) o ninguno (da igual en SQL Server).</p>
+      </div>
+    </section>
+
+    <section id="logica">
+      <span class="sec-kicker">Feature · paso e</span>
+      <h2>Lógica de negocio</h2>
+      <p>Clase concreta (<strong>sin interfaz</strong>), registrada <code>Scoped</code>. Aquí van: validación de parámetros, reglas de negocio, orquestación de varios repos, y el mapeo entidad → DTO. <strong>No</strong> va acceso a datos directo.</p>
+
+      <span class="filename">AIEP.Application.Logic/Logic/AlumnoLogic.cs</span>
+<pre><code>public class AlumnoLogic
+{
+    private readonly IAlumnoRepository _repo;
+    private readonly IMapper _mapper;
+    private readonly ILogger&lt;AlumnoLogic&gt; _logger;
+
+    public AlumnoLogic(IAlumnoRepository repo, IMapper mapper, ILogger&lt;AlumnoLogic&gt; logger)
+    {
+        _repo = repo; _mapper = mapper; _logger = logger;
+    }
+
+    public async Task&lt;List&lt;Alumno&gt;&gt; GetAlumno(
+        string? valorDocumento, string? tipoDocumento, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(valorDocumento))
+            throw new RequiredParameterException(nameof(valorDocumento));   <span class="c">// → 400</span>
+        if (string.IsNullOrWhiteSpace(tipoDocumento))
+            throw new RequiredParameterException(nameof(tipoDocumento));
+
+        _logger.LogInformation("Consulta de alumno {Tipo}:{Doc}", tipoDocumento, valorDocumento);
+
+        var data = await _repo.GetAlumnoAsync(valorDocumento, tipoDocumento, ct);
+        return _mapper.Map&lt;List&lt;Alumno&gt;&gt;(data);
+    }
+}</code></pre>
+
+      <div class="tip">
+        <span class="label">CancellationToken</span>
+        <p>Propágalo siempre: controller → logic → repo → <code>ExecuteReaderAsync(ct)</code>. Si el cliente corta la conexión, la consulta a la BD se cancela y no consumes un pool slot de más.</p>
+      </div>
+    </section>
+
+    <section id="endpoints">
+      <span class="sec-kicker">Feature · paso f</span>
+      <h2>Endpoints</h2>
+      <p>Controller MVC en <code>Controllers/v1/</code>, namespace <code>...Controllers.v1</code>. Devuelve el DTO "pelado" (no hay envoltorio <code>ApiResponse&lt;T&gt;</code>).</p>
+
+      <span class="filename">Controllers/v1/AlumnoController.cs</span>
+<pre><code>[ApiController]
+[Route("api/v{version:apiVersion}/[controller]")]
+[ApiVersion("1.0")]
+[Authorize]
+public class AlumnoController : ControllerBase
+{
+    private readonly AlumnoLogic _logic;
+    private const string _scope = "IntegrationService.Blueprint.Read";
+
+    public AlumnoController(AlumnoLogic logic) =&gt; _logic = logic;
+
+    [HttpGet]
+    [RequiredScope(AcceptedScope = new[] { _scope })]
+    [TypeFilter(typeof(ExceptionHandler))]
+    [RequireClaim("ClaimTenantId")]
+    public async Task&lt;IActionResult&gt; Get([FromQuery] AlumnoRequest? request, CancellationToken ct)
+    {
+        var output = await _logic.GetAlumno(request?.valorDocumento, request?.tipoDocumento, ct);
+        return Ok(output);
+    }
+}</code></pre>
+
+      <h3>Cada atributo, para qué</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Atributo</th><th>Efecto</th></tr></thead>
+          <tbody>
+            <tr><td><code>[ApiController]</code></td><td>Valida <code>ModelState</code> (DataAnnotations del request) ⇒ <code>400</code> automático; binding inferido.</td></tr>
+            <tr><td><code>[Route("api/v{version:apiVersion}/[controller]")]</code></td><td>Ruta con segmento de versión. <code>[controller]</code> = nombre sin sufijo (<code>Alumno</code>).</td></tr>
+            <tr><td><code>[ApiVersion("1.0")]</code></td><td>Versión que sirve este controller. Default asumido si no se especifica.</td></tr>
+            <tr><td><code>[Authorize]</code></td><td>Exige JWT Bearer válido (Azure AD).</td></tr>
+            <tr><td><code>[RequiredScope(AcceptedScope = …)]</code></td><td>El token debe traer ese <code>scp</code>/<code>scope</code>. Si no ⇒ <code>403</code>.</td></tr>
+            <tr><td><code>[RequireClaim("ClaimTenantId")]</code></td><td>El claim <code>tid</code> debe estar en <code>Conf:ListTenantId</code>. Si no ⇒ <code>403</code>.</td></tr>
+            <tr><td><code>[TypeFilter(typeof(ExceptionHandler))]</code></td><td>Envuelve la acción: cualquier excepción sale como <code>ExceptionResponse</code> con el HTTP correcto.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Registrar la lógica</h3>
+      <p>En <code>Program.cs</code>, junto a las demás:</p>
+      <pre><code>builder.Services.AddScoped&lt;AlumnoLogic&gt;();</code></pre>
+
+      <h3>Agregar una versión v2</h3>
+      <pre><code>Controllers/v2/AlumnoController.cs     namespace ...Controllers.v2
+[ApiVersion("2.0")]  →  GET /api/v2/alumno</code></pre>
+      <p>Las rutas de v1 siguen intactas. Puedes tener ambos controllers a la vez y compartir <code>Logic</code> o no.</p>
+    </section>
+
+    <section id="errores">
+      <span class="sec-kicker">Feature · paso g</span>
+      <h2>Manejo de errores</h2>
+      <p>No devuelvas códigos HTTP a mano. <strong>Lanza una excepción</strong> de <code>AIEP.Application.Model.Models</code>; el filtro <code>ExceptionHandler</code> la traduce y responde <code>{ "message": ..., "detail": ... }</code>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Lanza…</th><th>Cuándo</th><th>HTTP</th></tr></thead>
+          <tbody>
+            <tr><td><code>RequiredParameterException(nombre)</code></td><td>falta un parámetro obligatorio</td><td>400</td></tr>
+            <tr><td><code>InvalidParameterException(nombre)</code></td><td>parámetro presente pero inválido</td><td>400</td></tr>
+            <tr><td><code>DataValidationException(msg)</code></td><td>los datos no cumplen una regla de forma</td><td>400</td></tr>
+            <tr><td><code>NotFoundException&lt;Guid&gt;</code> / <code>&lt;string&gt;</code></td><td>el recurso no existe</td><td>404</td></tr>
+            <tr><td><code>BusinessValidationException(msg)</code></td><td>viola una regla de negocio</td><td>422</td></tr>
+            <tr><td><code>BusinessException(msg)</code></td><td>error de negocio genérico (lo usa <code>ThrowIfSpError</code>)</td><td>422</td></tr>
+            <tr><td><code>AuthException(msg)</code></td><td>autorización insuficiente a nivel de dominio</td><td>401</td></tr>
+            <tr><td><code>DbException</code> (Oracle/Sql)</td><td>lo lanza el driver; no lo captures</td><td>500</td></tr>
+            <tr><td>cualquier otra</td><td>—</td><td>500</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre><code>if (rutInvalido)
+    throw new InvalidParameterException(nameof(valorDocumento), "El RUT no supera dígito verificador.");
+
+if (alumno is null)
+    throw new NotFoundException&lt;string&gt;($"No existe alumno {tipo}:{doc}.");</code></pre>
+
+      <div class="note">
+        <span class="label">El cuerpo del error</span>
+        <p><code>ExceptionResponse { string message; string detail; }</code>. En <code>400/404</code> el <code>detail</code> es la URL de la request; en <code>500</code> es un texto genérico (no filtra el stack). Todo se loguea con la excepción completa <em>antes</em> de responder.</p>
+      </div>
+    </section>
+
+    <section id="seguridad">
+      <span class="sec-kicker">Operación</span>
+      <h2>Seguridad</h2>
+      <p>Cuatro capas, en orden de ejecución:</p>
+      <ol>
+        <li><strong>API key</strong> — <code>ApiKeyMiddleware</code> compara el header <code>x-xmsbs-apikey</code> contra <code>Conf:ApiKey</code> (de Key Vault, refrescable) y <code>Conf:AdditionalKeys</code>. Sin match ⇒ <code>401</code> texto plano. <code>OPTIONS</code> pasa directo.</li>
+        <li><strong>JWT Bearer</strong> — <code>[Authorize]</code> + <code>AddMicrosoftIdentityWebApiAuthentication</code>. Token de Azure AD (<code>AzureAd</code> en config, <strong>sin</strong> ClientSecret: sólo se validan tokens).</li>
+        <li><strong>Scope</strong> — <code>[RequiredScope(...)]</code>. El token debe traer <code>IntegrationService.&lt;Servicio&gt;.Read</code> (o el que definas).</li>
+        <li><strong>Tenant</strong> — <code>[RequireClaim("ClaimTenantId")]</code>. El claim <code>tid</code> debe estar en <code>Conf:ListTenantId</code>.</li>
+      </ol>
+
+      <h3>Rotación de API key sin downtime</h3>
+      <p>Publica la key nueva en <code>Conf:AdditionalKeys</code> (array). Durante la ventana se aceptan la vieja (<code>Conf:ApiKey</code>) y la nueva. Luego promueve la nueva a <code>Conf:ApiKey</code> y vacía <code>AdditionalKeys</code>. Como se leen por <code>IOptionsMonitor</code>, el cambio en App Config entra sin reiniciar (refresco cada 5 min al tocar <code>Blueprint:Sentinel</code>).</p>
+
+      <h3>Swagger con auth</h3>
+      <p>El UI ya trae el botón <em>Authorize</em> (definición <code>Bearer</code>). Pega <code>Bearer &lt;token&gt;</code> y prueba endpoints protegidos. Swagger se sirve <strong>antes</strong> del <code>ApiKeyMiddleware</code>, así que <code>/swagger</code> no pide API key.</p>
+
+      <h3>CORS</h3>
+      <p>Política <code>"CorsPolicy"</code>. Si <code>AllowedHosts = "*"</code> ⇒ abierto; si no, se restringe a <code>Cors:AllowedOrigins</code>. Ajusta esa lista por entorno.</p>
+    </section>
+
+    <section id="logging">
+      <span class="sec-kicker">Operación</span>
+      <h2>Logging</h2>
+      <p>NLog, configurado en <code>nlog.config</code>. En contenedor los logs salen como <strong>JSON a stdout</strong> (target <code>jsonConsole</code>) para Azure Monitor / <code>docker logs</code>; en disco sólo <code>Error+</code>.</p>
+
+      <h3>Logueo estructurado — no interpoles</h3>
+      <pre><code><span class="c">// bien: plantilla + parámetros nombrados (indexables en Azure Monitor)</span>
+_logger.LogInformation("Consulta de alumno {Tipo}:{Doc}", tipoDocumento, valorDocumento);
+
+<span class="c">// mal: string interpolado (se pierde la estructura)</span>
+_logger.LogInformation($"Consulta de alumno {tipoDocumento}:{valorDocumento}");</code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nivel</th><th>Úsalo para</th></tr></thead>
+          <tbody>
+            <tr><td><code>LogDebug</code></td><td>diagnóstico local; no en Production</td></tr>
+            <tr><td><code>LogInformation</code></td><td>hitos de negocio (consulta hecha, entidad no encontrada)</td></tr>
+            <tr><td><code>LogWarning</code></td><td>algo recuperable o inesperado pero manejado (lo usa <code>ThrowIfSpError</code>)</td></tr>
+            <tr><td><code>LogError</code></td><td>excepción no controlada; el <code>ExceptionHandler</code> ya lo hace por ti</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Nunca loguees secretos, tokens ni la cadena de conexión. El RUT/documento es dato personal: acórtalo o hashéalo si tu política lo exige.</p>
+    </section>
+
+    <section id="pruebas">
+      <span class="sec-kicker">Operación</span>
+      <h2>Pruebas</h2>
+      <p>NUnit 3 + Moq. Tres tipos de prueba cubren una feature.</p>
+
+      <h4>1 · Lógica — con <code>LogicTestBase</code></h4>
+      <span class="filename">AIEP.Test/Logic/AlumnoLogicTests.cs</span>
+<pre><code>[TestFixture]
+public class AlumnoLogicTests : LogicTestBase&lt;AlumnoLogic, MapperConfig, IAlumnoRepository&gt;
+{
+    [Test]
+    public async Task GetAlumno_MapeaYCuenta()
+    {
+        var entidades = new List&lt;AlumnoEntity&gt; { new() { Rut = "1-9", Nombres = "Ana" } };
+        RepositoryMock
+            .Setup(r =&gt; r.GetAlumnoAsync("1-9", "RUT", It.IsAny&lt;CancellationToken&gt;()))
+            .ReturnsAsync(entidades);
+
+        var res = await Logic.GetAlumno("1-9", "RUT");
+
+        Assert.AreEqual(1, res.Count);
+    }
+
+    [Test]
+    public void GetAlumno_SinDocumento_Lanza() =&gt;
+        Assert.ThrowsAsync&lt;RequiredParameterException&gt;(() =&gt; Logic.GetAlumno(null, "RUT"));
+}</code></pre>
+
+      <h4>2 · Mapeo — con <code>DataTableReader</code> (sin BD)</h4>
+<pre><code>var t = new DataTable();
+t.Columns.Add("PIDM", typeof(int));
+t.Columns.Add("VIGENTE", typeof(string));
+t.Rows.Add(123, "Y");
+t.Rows.Add(456, DBNull.Value);
+
+using var reader = t.CreateDataReader();
+var list = await DbReaderMapper.MapReaderToListAsync&lt;AlumnoEntity&gt;(reader);
+
+Assert.IsTrue(list[0].Vigente);      <span class="c">// "Y" → true</span>
+Assert.IsFalse(list[1].Vigente);     <span class="c">// DBNull → default(bool)</span></code></pre>
+
+      <h4>3 · Fábrica — Oracle vs SQL Server</h4>
+      <p><code>DbConnectionFactoryTests</code> ya cubre: <code>CreateConnection()</code> devuelve el tipo correcto por <code>Provider</code>, <code>AddRefCursor</code> agrega parámetro en Oracle y <code>null</code> en SQL Server, y falla si falta la cadena. Cópialo si agregas comportamiento a la fábrica.</p>
+
+      <pre><code>dotnet test ApiBlueprint.sln -c Release --collect:"XPlat Code Coverage"</code></pre>
+    </section>
+
+    <section id="tutorial">
+      <span class="sec-kicker">Práctica</span>
+      <h2>Tutorial: feature “Alumno” (ERP Banner) de punta a punta</h2>
+      <p>Objetivo: <code>GET /api/v1/alumno?valorDocumento=12345678&amp;tipoDocumento=RUT</code> que consulta un SP de Banner con dos result sets (alumno + programas) y devuelve el DTO ensamblado. Los archivos que ya trae el repo para <code>Recurso</code> son tu plantilla.</p>
+
+      <ol class="steps">
+        <li>
+          <h3>Entidad</h3>
+          <p>Crea <code>AIEP.Domain.DataBlueprint/Entities/AlumnoEntity.cs</code> y <code>ProgramaAlumnoEntity.cs</code> con <code>[Column]</code> apuntando a los alias del SP (ver <a href="#entidades">sección 4</a>). <code>ProgramaAlumnoEntity</code> lleva <code>[Column("PIDM")] int Pidm</code> para el join en memoria.</p>
+        </li>
+        <li>
+          <h3>DTOs</h3>
+          <p><code>AIEP.Application.Model/Models/Alumno/Alumno.cs</code> (+ <code>ProgramaAlumno</code>) con <code>[JsonPropertyName]</code>, y <code>AlumnoRequest.cs</code> con <code>[Required]</code> / <code>[StringLength]</code> (ver <a href="#modelos">sección 5</a>).</p>
+        </li>
+        <li>
+          <h3>Contrato del SP (ambos motores)</h3>
+          <p>Documenta el orden canónico en <code>db/oracle/</code> y <code>db/sqlserver/</code>.</p>
+<pre><code><span class="c">-- Oracle</span>
+PROCEDURE P_GET_ALUMNO(
+  P_TP_DOC     IN  VARCHAR2,
+  P_DOCUMENTO  IN  VARCHAR2,
+  C_ALUMNO     OUT SYS_REFCURSOR,   <span class="c">-- #1: PIDM, ID_BANNER, RUT, NOMBRES, ... , VIGENTE('Y'/'N')</span>
+  C_PROGRAMAS  OUT SYS_REFCURSOR,   <span class="c">-- #2: PIDM, CODIGO, NOMBRE</span>
+  P_CODIGO     OUT VARCHAR2,        <span class="c">-- 'OK' | '400...' | '404...' | otro</span>
+  P_MENSAJE    OUT VARCHAR2);
+
+<span class="c">-- SQL Server: @P_TP_DOC, @P_DOCUMENTO, @P_CODIGO OUT, @P_MENSAJE OUT</span>
+<span class="c">--   SELECT ... (#1);  SELECT ... (#2);  SET @P_CODIGO='OK';</span></code></pre>
+        </li>
+        <li>
+          <h3>Interfaz + repositorio</h3>
+          <p><code>AIEP.Application.Repository/Repository/Alumno/IAlumnoRepository.cs</code>:</p>
+<pre><code>Task&lt;List&lt;AlumnoEntity&gt;&gt; GetAlumnoAsync(string valorDocumento, string tipoDocumento, CancellationToken ct = default);</code></pre>
+          <p>Y <code>AlumnoRepository.cs</code> heredando de <code>BaseRepository</code> — copia la anatomía de la <a href="#repositorio">sección 7</a>. Recuerda: cursores antes de escalares, OUT params fuera del <code>using</code> del reader, <code>ThrowIfSpError</code>, join por <code>ToLookup</code>.</p>
+        </li>
+        <li>
+          <h3>Registrar el repo</h3>
+          <p>En <code>ServiceCollectionExtensions.AddBlueprintRepository</code>:</p>
+<pre><code>services.AddScoped&lt;IAlumnoRepository, AlumnoRepository&gt;();</code></pre>
+        </li>
+        <li>
+          <h3>Lógica</h3>
+          <p><code>AIEP.Application.Logic/Logic/AlumnoLogic.cs</code> — valida <code>valorDocumento</code> y <code>tipoDocumento</code>, loguea, llama al repo, mapea (ver <a href="#logica">sección 8</a>).</p>
+        </li>
+        <li>
+          <h3>Mapper</h3>
+          <p>En <code>Mapper/MapperConfig.cs</code> agrega los <code>CreateMap</code> (elemento anidado primero):</p>
+<pre><code>CreateMap&lt;ProgramaAlumno, ProgramaAlumnoEntity&gt;().ReverseMap();
+CreateMap&lt;Alumno, AlumnoEntity&gt;().ReverseMap()
+    .ForMember(d =&gt; d.NombreCompleto,
+               o =&gt; o.MapFrom(s =&gt; $"{s.Nombres} {s.ApellidoPaterno} {s.ApellidoMaterno}".Trim()));</code></pre>
+        </li>
+        <li>
+          <h3>Controller</h3>
+          <p><code>Controllers/v1/AlumnoController.cs</code> — copia de la <a href="#endpoints">sección 9</a>. Ajusta el <code>_scope</code> si tu servicio usa otro.</p>
+        </li>
+        <li>
+          <h3>Registrar la lógica + configurar</h3>
+<pre><code><span class="c">// Program.cs</span>
+builder.Services.AddScoped&lt;AlumnoLogic&gt;();</code></pre>
+          <p>En <code>appsettings.json</code>: <code>Conf:StoredProcedureName = "PKG_BLUEPRINT.P_GET_ALUMNO"</code> (o el de SQL Server según entorno vía App Config).</p>
+        </li>
+        <li>
+          <h3>Pruebas</h3>
+          <p><code>AlumnoLogicTests</code> (con <code>LogicTestBase</code>) + un test de mapeo con <code>DataTableReader</code> (ver <a href="#pruebas">sección 13</a>). <code>dotnet test</code>.</p>
+        </li>
+        <li>
+          <h3>Probar en local, con los dos motores</h3>
+<pre><code>dotnet user-secrets set "ConnectionStrings:BlueprintDb" "&lt;cadena&gt;"
+dotnet user-secrets set "Conf:ApiKey" "&lt;key&gt;"
+
+$env:Database__Provider = "Oracle";  dotnet run
+<span class="c"># en otra terminal:</span>
+curl -k "https://localhost:7090/api/v1/alumno?valorDocumento=12345678&amp;tipoDocumento=RUT" ^
+  -H "Authorization: Bearer &lt;token&gt;" -H "x-xmsbs-apikey: &lt;key&gt;"
+
+<span class="c"># repetir con  $env:Database__Provider = "SqlServer"  — el DTO debe salir idéntico.</span></code></pre>
+          <div class="tip">
+            <span class="label">Criterio de aceptación</span>
+            <p>Mismo JSON con <code>Provider=Oracle</code> y <code>Provider=SqlServer</code>; <code>400</code> si falta un parámetro; <code>401</code> sin API key; <code>403</code> si el <code>tid</code> no está autorizado; <code>200</code> con la lista y sus <code>Programas</code> anidados.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section id="aristas">
+      <span class="sec-kicker">Práctica</span>
+      <h2>Aristas frecuentes / FAQ</h2>
+
+      <h3>Paginación</h3>
+      <p>El blueprint no la trae. Patrón recomendado: parámetros <code>@P_PAGINA</code>/<code>@P_TAMANO</code> al SP + un tercer result set (o un OUT param) con el total. En el DTO, un envoltorio <code>PagedResult&lt;T&gt; { items, page, size, total }</code> — este sí es un caso legítimo de envoltorio.</p>
+
+      <h3>Transacciones</h3>
+      <p>No hay soporte en <code>BaseRepository</code> (los SP de sólo-lectura no lo necesitan). Si escribes: abre la conexión, <code>await using var tx = await conn.BeginTransactionAsync(ct)</code>, asigna <code>cmd.Transaction = tx</code>, y <code>await tx.CommitAsync(ct)</code>. Mantenlo dentro de un único método del repo.</p>
+
+      <h3>Varios SP o varias conexiones en un método</h3>
+      <p>Abre una <code>DbConnection</code> por SP (o reusa la misma para varios comandos secuenciales). Si necesitas dos bases distintas a la vez, usa la variante de dos claves de conexión (<code>ConnectionStrings:BlueprintDb.Oracle</code> / <code>.SqlServer</code>) y resuelve la segunda con <code>IConfiguration.GetConnectionString</code> directamente.</p>
+
+      <h3>Consultas largas</h3>
+      <p><code>Database:CommandTimeout</code> (segundos) aplica a todos los comandos. Para un SP puntualmente lento, súbelo por entorno en App Config; no lo bajes globalmente.</p>
+
+      <h3>Performance con muchos registros</h3>
+      <p><code>DbReaderMapper</code> ya lee la fila completa con <code>GetValues</code> y cachea los setters. Para volúmenes grandes en Oracle, sube <code>FetchSize</code> en la cadena o en el comando (<code>((OracleCommand)cmd).FetchSize</code> dentro de un adapter). Evita traer miles de filas por endpoint: pagina.</p>
+
+      <h3>Health checks</h3>
+      <p>No incluidos (paridad con Sedes). Para agregarlos: <code>builder.Services.AddHealthChecks().AddCheck(...)</code> con un ping a <code>SELECT 1</code> / <code>SELECT 1 FROM DUAL</code> vía <code>IDbConnectionFactory</code>, y <code>app.MapHealthChecks("/health")</code> <strong>antes</strong> del <code>ApiKeyMiddleware</code>.</p>
+
+      <h3>OpenTelemetry / métricas</h3>
+      <p>No incluido. Punto de extensión natural en <code>Program.cs</code> junto al logging; el <code>ExceptionHandler</code> ya centraliza el registro de fallos.</p>
+
+      <h3>Qué NO hacer</h3>
+      <ul>
+        <li>Leer <code>IConfiguration</code> crudo en Logic o Controller — usa <code>IOptions</code>.</li>
+        <li><code>using Oracle.*</code> / <code>using Microsoft.Data.SqlClient</code> fuera de los dos adapters.</li>
+        <li>Devolver la entidad <code>*Entity</code> desde el controller — siempre el DTO.</li>
+        <li>Capturar <code>Exception</code> en el repo para "loguear y relanzar" — deja que suba al <code>ExceptionHandler</code>.</li>
+        <li>Leer <code>P_CODIGO</code> con el reader abierto.</li>
+        <li>Interpolar strings en los logs.</li>
+      </ul>
+    </section>
+
+    <section id="cheatsheet">
+      <span class="sec-kicker">Práctica</span>
+      <h2>Referencia rápida</h2>
+
+      <h4>Archivos de una feature <code>X</code></h4>
+<pre><code>AIEP.Domain.DataBlueprint/Entities/XEntity.cs
+AIEP.Application.Model/Models/X/X.cs
+AIEP.Application.Model/Models/X/XRequest.cs
+AIEP.Application.Repository/Repository/X/IXRepository.cs
+AIEP.Application.Repository/Repository/X/XRepository.cs
+AIEP.Application.Logic/Logic/XLogic.cs
+AIEP.Application.Api.Blueprint/Controllers/v1/XController.cs
+AIEP.Application.Api.Blueprint/Mapper/MapperConfig.cs        (+CreateMap)
+AIEP.Application.Repository/ServiceCollectionExtensions.cs   (+AddScoped)
+AIEP.Application.Api.Blueprint/Program.cs                    (+AddScoped&lt;XLogic&gt;)
+AIEP.Test/Logic/XLogicTests.cs
+db/oracle/…  db/sqlserver/…</code></pre>
+
+      <h4>Firmas que más vas a usar</h4>
+<pre><code>Task&lt;DbConnection&gt;  OpenConnectionAsync(CancellationToken ct)
+DbCommand          CreateStoredProcCommand(DbConnection conn, string sp)
+DbParameter        AddParameter(DbCommand cmd, string name, object? value,
+                                DbType? dbType = null,
+                                ParameterDirection direction = ParameterDirection.Input,
+                                int? size = null)
+DbParameter?       AddRefCursor(DbCommand cmd, string name)
+Task&lt;List&lt;T&gt;&gt;       MapAsync&lt;T&gt;(DbDataReader reader, CancellationToken ct)   where T : new()
+string?            GetOutputString(DbCommand cmd, string name)
+void               ThrowIfSpError(string? codigo, string? mensaje)
+
+DbReaderMapper.MapReaderToList&lt;T&gt;(IDataReader r)
+DbReaderMapper.MapReaderToListAsync&lt;T&gt;(DbDataReader r, CancellationToken ct = default)</code></pre>
+
+      <h4>Excepción → HTTP</h4>
+<pre><code>RequiredParameterException / InvalidParameterException / DataValidationException → 400
+NotFoundException&lt;T&gt;                                                             → 404
+AuthException                                                                    → 401
+BusinessException / BusinessValidationException                                  → 422
+DbException / otras                                                              → 500</code></pre>
+
+      <h4>Variables de entorno (local / contenedor)</h4>
+<pre><code>ASPNETCORE_ENVIRONMENT = Development | QA | Production
+Database__Provider     = Oracle | SqlServer
+ConnectionStrings__BlueprintDb = &lt;cadena&gt;
+Conf__ApiKey           = &lt;key&gt;
+AzureAppConfig__Endpoint = https://appcs-...   (vacío = no usar App Config)</code></pre>
+
+      <p style="margin-top:2rem; color:var(--text-muted); font-size:.9rem;">Fuente canónica y versionada: <code>docs/MANUAL-DESARROLLADOR.md</code> en el repo del blueprint. Renombrado <code>Blueprint → MiServicio</code> y provisión de Azure: <code>README.md</code>.</p>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+    var map = {};
+    links.forEach(function (a) {
+      var id = a.getAttribute('href').slice(1);
+      var el = document.getElementById(id);
+      if (el) map[id] = a;
+    });
+    var ids = Object.keys(map);
+    if (!ids.length || !('IntersectionObserver' in window)) return;
+
+    var current = null;
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          if (current) current.classList.remove('active');
+          current = map[e.target.id];
+          if (current) current.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-10% 0px -80% 0px', threshold: 0 });
+
+    ids.forEach(function (id) { obs.observe(document.getElementById(id)); });
+  })();
+</script>
