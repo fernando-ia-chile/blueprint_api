@@ -2,228 +2,249 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap">
 
 <style>
-  /* ===== Tokens: light (bare :root = the un-stamped default) ===== */
+  /*
+    Paleta institucional AIEP — tomada de front/tailwind.config.js (skill diseno-front-aiep).
+    La app de referencia no define modo oscuro (header y footer navy fijos, fondo #fbfcff
+    fijo): esta página adopta el mismo compromiso de un único mundo visual a propósito,
+    en vez de reinterpretar la marca institucional con una variante oscura inventada.
+  */
   :root {
-    --bg:        #f7f9fb;
-    --surface:   #ffffff;
-    --sunken:    #eef2f6;
-    --code-bg:   #f1f4f8;
-    --border:    #dbe3ec;
-    --border-strong: #c4d0dd;
-    --text:      #15202c;
-    --text-muted:#556676;
-    --accent:    #00377e;
-    --accent-ink:#00377e;
-    --accent-soft:#e6eef8;
-    --danger:    #a5231f;
-    --danger-soft:#f8e9e8;
-    --ok:        #1e6f34;
-    --ok-soft:   #e6f1e8;
-    --shadow:    0 1px 2px rgba(15,32,44,.05), 0 8px 24px -12px rgba(15,32,44,.12);
-  }
-  /* ===== Tokens: dark via OS setting, only when no explicit light choice ===== */
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg:        #0d151e;
-      --surface:   #131e29;
-      --sunken:    #0a121b;
-      --code-bg:   #0b131c;
-      --border:    #253340;
-      --border-strong: #33475a;
-      --text:      #e3e9f0;
-      --text-muted:#93a3b3;
-      --accent:    #6ea9e6;
-      --accent-ink:#a8ccf1;
-      --accent-soft:#15263a;
-      --danger:    #ef8f8b;
-      --danger-soft:#2b1a1b;
-      --ok:        #74c187;
-      --ok-soft:   #14251a;
-      --shadow:    0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.55);
-    }
-  }
-  /* ===== Tokens: explicit dark choice wins in the other direction ===== */
-  :root[data-theme="dark"] {
-    --bg:        #0d151e;
-    --surface:   #131e29;
-    --sunken:    #0a121b;
-    --code-bg:   #0b131c;
-    --border:    #253340;
-    --border-strong: #33475a;
-    --text:      #e3e9f0;
-    --text-muted:#93a3b3;
-    --accent:    #6ea9e6;
-    --accent-ink:#a8ccf1;
-    --accent-soft:#15263a;
-    --danger:    #ef8f8b;
-    --danger-soft:#2b1a1b;
-    --ok:        #74c187;
-    --ok-soft:   #14251a;
-    --shadow:    0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.55);
+    --primary-blue-100:  #182844;
+    --primary-blue-90:   #24334e;
+    --primary-blue-80:   #39475f;
+    --primary-blue-70:   #5c677b;
+    --primary-blue-50:   #8b93a1;
+    --secondary-blue-1:  #102a8a;
+    --secondary-blue-2:  #024588;
+    --secondary-cyan-100:#0065dc;
+    --secondary-cyan-20: #d7e5f4;
+    --secondary-cyan-10: #f4f7ff;
+    --secondary-gray-10: #f8f8f8;
+    --secondary-gray-20: #f0f1f2;
+    --secondary-gray-70: #7c7f88;
+    --primary-red-100:   #aa0000;
+    --header-bg:         #002548;
+    --surface-app:       #fbfcff;
+    --border-table:      #b5bac2;
+    --border-row:        #d1d4da;
+    --badge-actions-bg:  #ebf2f9; --badge-actions-fg: #024588;
+    --badge-success-bg:  #dff5de; --badge-success-fg: #195917;
+    --badge-warning-bg:  #f4cb9c; --badge-warning-fg: #7f3d0e;
+    --badge-error-bg:    #f1aead; --badge-error-fg:   #7b0000;
+
+    --shadow-sm:     0px 1px 3px 0px rgba(0,0,0,.1), 0px 1px 2px -1px rgba(0,0,0,.1);
+    --shadow-md:     0px 3px 4px -1px rgba(0,0,0,.1), 0px 1px 3px -1.5px rgba(0,0,0,.05);
+    --shadow-lg:     0px 10px 15px -3px rgba(0,0,0,.1), 0px 4px 6px 0px rgba(0,0,0,.05);
+    --shadow-header: 0px 4px 6px -1px rgba(0,0,0,.06), 0px 2px 4px -2px rgba(0,0,0,.04);
+
+    /* alias funcionales usados por el resto de la hoja de estilos */
+    --bg:            var(--surface-app);
+    --surface:       #ffffff;
+    --sunken:        var(--secondary-gray-10);
+    --code-bg:       var(--secondary-gray-10);
+    --border:        var(--secondary-cyan-20);
+    --border-strong: var(--border-table);
+    --text:          var(--primary-blue-90);
+    --text-muted:    var(--primary-blue-70);
+    --accent:        var(--secondary-cyan-100);
+    --accent-ink:    var(--secondary-blue-2);
+    --accent-soft:   var(--secondary-cyan-10);
+    --danger:        var(--primary-red-100);
+    --danger-soft:   var(--badge-error-bg);
+    --ok:            var(--badge-success-fg);
+    --ok-soft:       var(--badge-success-bg);
+
+    --font-ubuntu:  'Ubuntu', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    --font-verdana: Verdana, Geneva, 'DejaVu Sans', sans-serif;
+    --font-mono:    ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
 
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; scroll-padding-top: 1.5rem; }
+  html { scroll-behavior: smooth; scroll-padding-top: 5.25rem; }
   @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
   body {
     margin: 0;
     background: var(--bg);
-    color: var(--text);
-    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-    font-size: 16px;
-    line-height: 1.65;
+    color: var(--primary-blue-80);
+    font-family: var(--font-verdana);
+    font-size: 14px;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
 
-  a { color: var(--accent-ink); text-decoration: none; }
+  a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; text-underline-offset: 2px; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
 
-  /* ===== Masthead ===== */
-  .masthead {
-    border-bottom: 1px solid var(--border);
-    background:
-      linear-gradient(180deg, var(--accent-soft), transparent 70%),
-      var(--surface);
+  /* ===== Header institucional (AppHeader) ===== */
+  .app-header {
+    background: var(--header-bg);
+    box-shadow: var(--shadow-header);
+    position: sticky; top: 0; z-index: 20;
   }
-  .masthead-inner {
-    max-width: 78rem;
-    margin: 0 auto;
-    padding: 3.25rem 1.5rem 2.5rem;
+  .app-header-inner {
+    max-width: 78rem; margin: 0 auto;
+    padding: 0 1.5rem; height: 4rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
   }
-  .kicker {
-    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: .72rem;
-    letter-spacing: .22em;
-    text-transform: uppercase;
-    color: var(--accent-ink);
-    margin: 0 0 .9rem;
+  .brand { display: flex; align-items: center; gap: .85rem; min-width: 0; }
+  .brand-logo { display: block; flex: none; color: #ffffff; }
+  .brand-divider { width: 1px; height: 1.5rem; background: rgba(255,255,255,.25); flex: none; }
+  .brand-name {
+    font-family: var(--font-ubuntu); font-weight: 500; font-size: .95rem;
+    color: var(--secondary-gray-20); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .masthead h1 {
-    font-size: clamp(1.9rem, 1.2rem + 2.6vw, 3rem);
-    line-height: 1.08;
-    font-weight: 600;
-    letter-spacing: -.02em;
-    text-wrap: balance;
-    margin: 0 0 .75rem;
+  .brand-tag {
+    font-family: var(--font-ubuntu); font-size: .78rem; color: var(--primary-blue-50);
   }
-  .masthead .lead {
-    font-size: 1.075rem;
-    color: var(--text-muted);
-    max-width: 62ch;
-    margin: 0 0 1.5rem;
+  @media (max-width: 48rem) { .brand-tag { display: none; } }
+
+  .header-nav { display: flex; align-items: center; gap: 1.25rem; flex: none; }
+  .header-nav a {
+    font-family: var(--font-ubuntu); font-size: .85rem; font-weight: 500;
+    color: var(--secondary-gray-20);
   }
-  .meta-row {
-    display: flex; flex-wrap: wrap; gap: .5rem .5rem;
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: .78rem;
+  .header-nav a:hover { color: #ffffff; text-decoration: none; }
+
+  /* ===== Page head ===== */
+  .page-head { grid-column: 1 / -1; margin-bottom: .5rem; }
+  .page-head-title { display: flex; align-items: center; gap: .625rem; }
+  .page-icon { flex: none; color: var(--accent); }
+  .page-head h1 {
+    font-family: var(--font-ubuntu); font-weight: 700;
+    font-size: 1.25rem; line-height: 1.3; letter-spacing: -.01em;
+    color: var(--accent-ink); margin: 0; text-wrap: balance;
   }
+  .lead {
+    font-family: var(--font-verdana); font-size: .95rem; line-height: 1.6;
+    color: var(--text-muted); max-width: 62ch; margin: .75rem 0 1rem;
+  }
+  .meta-row { display: flex; flex-wrap: wrap; gap: .5rem; }
   .chip {
-    border: 1px solid var(--border-strong);
-    border-radius: 999px;
-    padding: .18rem .7rem;
-    color: var(--text-muted);
-    background: var(--surface);
+    font-family: var(--font-ubuntu); font-size: .72rem; font-weight: 500;
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: .25rem .65rem; color: var(--primary-blue-80); background: var(--sunken);
   }
+  .chip-link {
+    display: inline-flex; align-items: center; gap: .3rem;
+    color: var(--accent-ink); background: var(--secondary-cyan-10); border-color: var(--secondary-cyan-20);
+    cursor: pointer;
+  }
+  .chip-link:hover { background: var(--secondary-cyan-20); text-decoration: none; }
 
   /* ===== Layout ===== */
   .layout {
     max-width: 78rem;
     margin: 0 auto;
-    padding: 2.5rem 1.5rem 5rem;
+    padding: 1.75rem 1.5rem 4rem;
     display: grid;
-    grid-template-columns: 15rem minmax(0, 1fr);
-    gap: 3rem;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
   .toc {
-    position: sticky;
-    top: 1rem;
-    align-self: start;
-    max-height: calc(100vh - 2rem);
-    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--secondary-cyan-10);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    padding: .75rem;
     font-size: .875rem;
-    padding-right: .25rem;
   }
   .toc h2 {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: var(--font-ubuntu);
     font-size: .68rem;
-    letter-spacing: .2em;
+    font-weight: 700;
+    letter-spacing: .12em;
     text-transform: uppercase;
-    color: var(--text-muted);
-    margin: 0 0 .65rem;
+    color: var(--primary-blue-50);
+    margin: .5rem 0 .4rem .55rem;
   }
-  .toc ol { list-style: none; margin: 0 0 1.4rem; padding: 0; }
-  .toc li { margin: .1rem 0; }
+  .toc h2:first-child { margin-top: .1rem; }
+  .toc ol { list-style: none; margin: 0 0 .5rem; padding: 0; }
+  .toc li { margin: .05rem 0; }
   .toc a {
-    display: block;
-    padding: .28rem .55rem;
+    display: flex; align-items: center; gap: .5rem;
+    font-family: var(--font-ubuntu); font-size: .85rem;
+    padding: .5rem .55rem;
     border-radius: 6px;
-    color: var(--text-muted);
-    border-left: 2px solid transparent;
+    color: var(--primary-blue-80);
   }
-  .toc a:hover { color: var(--text); background: var(--sunken); text-decoration: none; }
-  .toc a.active { color: var(--accent-ink); border-left-color: var(--accent); background: var(--accent-soft); font-weight: 500; }
-  .toc .num { font-family: "IBM Plex Mono", monospace; font-size: .78em; color: var(--accent-ink); margin-right: .4rem; }
+  .toc a:hover { color: var(--accent-ink); background: var(--secondary-cyan-10); text-decoration: none; }
+  .toc a.active { color: var(--accent-ink); background: var(--secondary-cyan-20); font-weight: 500; }
+  .toc .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    flex: none; width: 1.35rem; height: 1.35rem; border-radius: 999px;
+    font-family: var(--font-ubuntu); font-size: .68rem; font-weight: 700;
+    background: var(--secondary-cyan-10); color: var(--accent);
+  }
+  .toc a.active .num { background: var(--accent); color: #fff; }
 
-  main { min-width: 0; }
-  main > section { scroll-margin-top: 1.5rem; }
-  main > section + section {
-    margin-top: 3.25rem;
-    padding-top: 3.25rem;
-    border-top: 1px solid var(--border);
+  main { min-width: 0; display: flex; flex-direction: column; gap: 1.25rem; }
+  main > section {
+    scroll-margin-top: 5.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: var(--shadow-md);
+    padding: 1.125rem;
   }
 
   section > h2 {
-    font-size: 1.6rem;
-    font-weight: 600;
-    letter-spacing: -.015em;
-    line-height: 1.2;
+    font-family: var(--font-ubuntu);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    line-height: 1.3;
     text-wrap: balance;
+    color: var(--accent-ink);
     margin: 0 0 .35rem;
-    scroll-margin-top: 1.5rem;
   }
   .sec-kicker {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: .7rem;
-    letter-spacing: .2em;
+    font-family: var(--font-ubuntu);
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .12em;
     text-transform: uppercase;
-    color: var(--accent-ink);
+    color: var(--accent);
     display: block;
-    margin-bottom: .5rem;
+    margin-bottom: .4rem;
   }
   h3 {
-    font-size: 1.12rem;
-    font-weight: 600;
-    letter-spacing: -.01em;
-    margin: 2.1rem 0 .6rem;
+    font-family: var(--font-ubuntu);
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--primary-blue-90);
+    margin: 1.6rem 0 .5rem;
   }
   h4 {
-    font-size: .95rem;
-    font-weight: 600;
-    margin: 1.5rem 0 .4rem;
+    font-family: var(--font-ubuntu);
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--primary-blue-90);
+    margin: 1.2rem 0 .35rem;
   }
   p, li { max-width: 72ch; }
-  section p { margin: .7rem 0; }
+  section p { margin: .6rem 0; line-height: 1.6; }
   ul, ol { padding-left: 1.25rem; }
   li { margin: .3rem 0; }
-  strong { font-weight: 600; }
+  strong { font-weight: 700; color: var(--primary-blue-90); }
 
   code {
-    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-family: var(--font-mono);
     font-size: .86em;
-    background: var(--code-bg);
+    background: var(--secondary-cyan-10);
     border: 1px solid var(--border);
     border-radius: 4px;
     padding: .08em .38em;
     word-break: break-word;
+    color: var(--primary-blue-90);
   }
   pre {
     margin: 1rem 0;
-    background: var(--code-bg);
+    background: var(--secondary-gray-10);
     border: 1px solid var(--border);
     border-left: 3px solid var(--accent);
     border-radius: 8px;
@@ -234,15 +255,16 @@
   }
   pre code {
     background: none; border: 0; padding: 0; font-size: inherit;
-    white-space: pre; word-break: normal;
+    white-space: pre; word-break: normal; color: var(--primary-blue-90);
   }
-  pre .c { color: var(--text-muted); font-style: italic; }
+  pre .c { color: var(--primary-blue-50); font-style: italic; }
   .filename {
-    font-family: "IBM Plex Mono", monospace;
-    font-size: .74rem;
-    letter-spacing: .04em;
-    color: var(--text-muted);
-    background: var(--sunken);
+    font-family: var(--font-ubuntu);
+    font-size: .72rem;
+    font-weight: 500;
+    letter-spacing: .02em;
+    color: var(--primary-blue-70);
+    background: var(--secondary-cyan-10);
     border: 1px solid var(--border);
     border-bottom: 0;
     border-radius: 8px 8px 0 0;
@@ -253,48 +275,50 @@
   .filename + pre { margin-top: 0; border-top-left-radius: 0; border-top-right-radius: 0; }
 
   /* ===== Tables ===== */
-  .table-wrap { overflow-x: auto; margin: 1.1rem 0; border: 1px solid var(--border); border-radius: 8px; }
-  table { border-collapse: collapse; width: 100%; font-size: .875rem; }
-  th, td { text-align: left; padding: .6rem .85rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .table-wrap { overflow-x: auto; margin: 1.1rem 0; border: 1px solid var(--border-table); border-radius: 8px; box-shadow: var(--shadow-sm); }
+  table { border-collapse: collapse; width: 100%; font-size: .85rem; }
+  th, td { text-align: left; padding: .6rem .85rem; border-bottom: 1px solid var(--border-row); vertical-align: top; }
   th {
-    background: var(--sunken);
-    font-weight: 600;
+    font-family: var(--font-ubuntu);
+    background: var(--secondary-cyan-10);
+    font-weight: 700;
     font-size: .78rem;
-    letter-spacing: .03em;
-    text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--accent);
     white-space: nowrap;
   }
+  td { font-family: var(--font-verdana); font-size: .8rem; line-height: 1.7; color: var(--primary-blue-70); }
   tr:last-child td { border-bottom: 0; }
   td code { font-size: .82em; white-space: nowrap; }
-  td:first-child { white-space: nowrap; }
+  td:first-child { white-space: nowrap; color: var(--primary-blue-90); }
 
-  /* ===== Callouts ===== */
+  /* ===== Callouts (paleta de Badge) ===== */
   .note, .warn, .tip {
     margin: 1.2rem 0;
     padding: .85rem 1.1rem;
     border-radius: 8px;
     border-left: 3px solid;
-    font-size: .93rem;
+    font-family: var(--font-verdana);
+    font-size: .88rem;
+    line-height: 1.6;
   }
   .note p, .warn p, .tip p { margin: .4rem 0; max-width: none; }
   .note p:first-child, .warn p:first-child, .tip p:first-child { margin-top: 0; }
   .note p:last-child, .warn p:last-child, .tip p:last-child { margin-bottom: 0; }
-  .note { background: var(--accent-soft); border-color: var(--accent); }
-  .warn { background: var(--danger-soft); border-color: var(--danger); }
-  .tip  { background: var(--ok-soft); border-color: var(--ok); }
+  .note { background: var(--badge-actions-bg); border-color: var(--badge-actions-fg); }
+  .warn { background: var(--badge-warning-bg); border-color: var(--badge-warning-fg); }
+  .tip  { background: var(--badge-success-bg); border-color: var(--badge-success-fg); }
   .label {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--font-ubuntu);
     font-size: .66rem;
-    letter-spacing: .18em;
+    letter-spacing: .1em;
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: 700;
     display: block;
     margin-bottom: .3rem;
   }
-  .note .label { color: var(--accent-ink); }
-  .warn .label { color: var(--danger); }
-  .tip .label  { color: var(--ok); }
+  .note .label { color: var(--badge-actions-fg); }
+  .warn .label { color: var(--badge-warning-fg); }
+  .tip .label  { color: var(--badge-success-fg); }
 
   /* ===== Numbered tutorial steps ===== */
   ol.steps { list-style: none; counter-reset: step; padding: 0; margin: 1.5rem 0 0; }
@@ -310,29 +334,28 @@
     left: 0; top: -.1rem;
     width: 2.25rem; height: 2.25rem;
     display: grid; place-items: center;
-    font-family: "IBM Plex Mono", monospace;
-    font-weight: 600;
+    font-family: var(--font-ubuntu);
+    font-weight: 700;
     font-size: .95rem;
-    color: var(--surface);
+    color: #ffffff;
     background: var(--accent);
-    border-radius: 8px;
+    border-radius: 999px;
   }
   ol.steps > li::after {
     content: "";
     position: absolute;
     left: 1.09rem; top: 2.6rem; bottom: .4rem;
     width: 2px;
-    background: var(--border);
+    background: var(--border-row);
   }
   ol.steps > li:last-child::after { display: none; }
   ol.steps > li > h3 { margin-top: .1rem; }
-  :root[data-theme="dark"] ol.steps > li::before,
-  :root:not([data-theme="light"]) ol.steps > li::before { color: var(--sunken); }
 
   .pill {
     display: inline-block;
-    font-family: "IBM Plex Mono", monospace;
-    font-size: .72rem;
+    font-family: var(--font-ubuntu);
+    font-size: .68rem;
+    font-weight: 500;
     padding: .1rem .5rem;
     border-radius: 5px;
     background: var(--sunken);
@@ -344,37 +367,93 @@
 
   .toc-toggle { display: none; }
 
-  @media (max-width: 60rem) {
-    .layout { grid-template-columns: 1fr; gap: 1.5rem; padding-top: 1.5rem; }
-    .toc {
-      position: static; max-height: none;
-      border: 1px solid var(--border); border-radius: 10px;
-      padding: 1rem 1.15rem; background: var(--surface);
-    }
-    .toc ol { margin-bottom: .75rem; }
-    .masthead-inner { padding: 2.25rem 1.5rem 1.75rem; }
+  /* ===== Descarga al pie de la barra lateral ===== */
+  .toc-download { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--secondary-cyan-10); }
+  .toc-download-link {
+    display: flex; align-items: flex-start; gap: .6rem;
+    padding: .6rem .6rem; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--secondary-cyan-10);
   }
-  @media (max-width: 40rem) {
-    body { font-size: 15px; }
-    pre { font-size: .76rem; }
+  .toc-download-link:hover { background: var(--secondary-cyan-20); text-decoration: none; }
+  .toc-download-link svg { flex: none; color: var(--accent); margin-top: .15rem; }
+  .toc-download-link strong {
+    display: block; font-family: var(--font-ubuntu); font-size: .8rem; font-weight: 700; color: var(--accent-ink);
+  }
+  .toc-download-link em {
+    display: block; font-family: var(--font-verdana); font-style: normal;
+    font-size: .72rem; color: var(--text-muted); margin-top: .1rem;
+  }
+
+  /* Offset de anclas dentro de una sección (subsecciones QA / Desarrollo) */
+  #infra-desa, #infra-qa { scroll-margin-top: 5.25rem; }
+
+  /* ===== Footer institucional (AppFooter) ===== */
+  .app-footer { background: var(--primary-blue-100); }
+  .app-footer-inner {
+    max-width: 78rem; margin: 0 auto; padding: 1.75rem 1.5rem;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem;
+  }
+  .app-footer p {
+    font-family: var(--font-ubuntu); font-size: .8rem; color: var(--secondary-gray-20);
+    margin: 0; max-width: none;
+  }
+
+  /* ===== Un solo salto responsive: 768px (md), mobile-first ===== */
+  @media (min-width: 48rem) {
+    .layout { grid-template-columns: 15rem minmax(0, 1fr); align-items: start; padding: 2.5rem 1.5rem 5rem; gap: 2.25rem; }
+    .page-head h1 { font-size: 1.5rem; }
+    .toc { position: sticky; top: 5.25rem; max-height: calc(100vh - 6rem); overflow-y: auto; }
+    main > section { padding: 1.5rem; }
   }
 </style>
 
-<header class="masthead">
-  <div class="masthead-inner">
-    <p class="kicker">AIEP · Plataforma de servicios · .NET 8</p>
-    <h1>Manual del Blueprint AIEP</h1>
+<svg aria-hidden="true" style="position:absolute; width:0; height:0; overflow:hidden;">
+  <defs>
+    <symbol id="logo-aiep" viewBox="0 0 150 67">
+      <title>AIEP</title>
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M61.132 53.243a2.2 2.2 0 0 0-.84-.027 5 5 0 0 0-.587.12 3 3 0 0 1-.156.036v3.798h-1.245v-4.42q.249-.1.903-.238a6 6 0 0 1 1.258-.137q.507 0 .667.055zM83.84 34.98h-5.617l2.79-8.513h.07zm1.826 5.321 1.69 4.647h7.2L84.77 18.2h-7.374l-9.994 26.746h7.168l1.792-4.647zm17.225-22.099h-6.754v26.746h6.754zm17.255 5.889V18.2h-14.783v26.746h14.783v-5.889h-8.028v-4.61h7.615v-5.889h-7.615v-4.47zm9.147-.284h1.137c2.619 0 4.859.036 4.859 3.405 0 3.264-2.412 3.264-4.859 3.264h-1.137zm-6.755 21.14h6.754V36.08h3.825c5.891 0 9.2-2.767 9.2-9.08 0-6.138-3.859-8.798-9.442-8.798h-10.337zM20.002 55.057H16.82q.017.741.36 1.098t1.116.357q.434 0 .872-.142.436-.142.604-.27v.824q-.177.109-.724.233-.547.123-1.187.124-1.271 0-1.779-.627-.506-.627-.506-1.945 0-1.117.595-1.726.596-.608 1.636-.609 1.032 0 1.614.618t.582 1.716zm-1.2-.677q-.018-.585-.27-.93-.254-.342-.725-.342-.96 0-.987 1.272zm-5.468-1.73q-.534-.274-1.37-.274-.88-.001-1.44.604t-.56 1.73q0 1.364.56 1.968t1.806.604a6.4 6.4 0 0 0 2.258-.394v-6.333l-1.253.375zm0 3.642q-.436.193-.996.193t-.818-.426-.257-1.35q-.001-1.53 1.084-1.53.178 0 .356.042t.377.11q.2.07.254.077zm16.99.677q-.25.1-.88.206-.631.106-1.494.106-2.126 0-2.126-1.529 0-.732.636-1.13.636-.399 1.588-.398h1.058v-.293q0-.796-1.28-.796-.695 0-1.628.375v-.788q.018 0 .179-.05.16-.05.329-.092.17-.041.404-.091a5.5 5.5 0 0 1 1.053-.115q1.13 0 1.646.375.515.375.515 1.236zm-1.218-.557v-1.53h-.65q-.693 0-1.04.193-.347.192-.347.659 0 .402.267.613t.71.21q.685 0 1.06-.145m-5.434.76h1.245v-6.618l-1.245.371zm15.221-2.234q0 1.125-.618 1.735-.617.608-1.827.609-1.316 0-1.885-.6-.57-.6-.569-1.734v-4h1.29v3.808q0 .824.257 1.207.258.385.907.385.614 0 .88-.398.268-.397.267-1.203v-3.798h1.298zm5.664 2.233h-1.254v-2.819q0-.613-.217-.883-.22-.27-.707-.27-.257 0-.56.06-.302.06-.419.123v3.79h-1.245V52.76a6.9 6.9 0 0 1 2.25-.385q1.041 0 1.596.385.556.384.556 1.152zm2.436 0h-1.245v-4.686h1.245zm-1.263-5.529h1.28v-.933l-1.28.383zm6.786.843L50.95 57.17h-1.662l-1.565-4.686h1.298l1.129 3.844 1.112-3.844zm4.82 2.572h-3.184q.019.741.36 1.098.343.357 1.116.357.435 0 .871-.142.435-.142.605-.27v.824q-.178.109-.725.233a5.4 5.4 0 0 1-1.187.124q-1.271 0-1.78-.627-.506-.627-.506-1.945 0-1.117.596-1.726.595-.608 1.636-.609 1.03 0 1.614.618.582.618.582 1.716v.348zm-1.201-.677q-.02-.585-.271-.93-.254-.342-.724-.342-.961 0-.988 1.272zm9.346 1.382q0 .713-.52 1.116-.522.402-1.526.403-.659 0-1.187-.124-.53-.123-.707-.233v-.814q.783.402 1.503.402.56 0 .854-.16t.293-.407q0-.228-.276-.398a3.2 3.2 0 0 0-.667-.298 12 12 0 0 1-.782-.288 1.8 1.8 0 0 1-.667-.462 1.02 1.02 0 0 1-.276-.713q0-.66.55-1.035.553-.375 1.423-.375 1.077 0 1.797.348v.806q-.756-.375-1.424-.375-1.084 0-1.084.522 0 .247.423.453.422.207.924.352.503.148.925.48.423.335.423.801zm2.204 1.41H66.44v-4.687h1.245zm11.018-.203q-.25.1-.881.206-.63.106-1.494.106-2.125 0-2.125-1.529 0-.732.636-1.13.635-.399 1.587-.398h1.058v-.293q0-.796-1.28-.796-.694 0-1.627.375v-.788q.017 0 .178-.05a5 5 0 0 1 .33-.092q.167-.041.404-.091a5.5 5.5 0 0 1 1.054-.115q1.13 0 1.645.375t.516 1.236v2.983zm-1.219-.557v-1.53h-.65q-.693 0-1.04.193-.346.192-.346.659 0 .402.266.613t.711.21q.685 0 1.06-.145m-5.433-3.762q-.533-.274-1.37-.274-.879-.001-1.44.604-.559.605-.56 1.73.001 1.364.56 1.968.561.604 1.806.604 1.21 0 2.26-.394v-6.333l-1.255.375zm0 3.642q-.435.193-.995.193t-.818-.426-.257-1.35q-.001-1.53 1.084-1.53.177 0 .356.042.178.042.377.11.2.07.253.077zm10.982-3.642q-.534-.274-1.37-.274-.879-.001-1.44.604t-.56 1.73q0 1.364.56 1.968t1.806.604a6.4 6.4 0 0 0 2.258-.394v-6.333l-1.253.375zm0 3.642q-.435.193-.996.193-.562 0-.818-.426-.258-.424-.258-1.35-.001-1.53 1.084-1.53.179 0 .356.042.177.04.378.11.2.07.253.077zm-16.61-4.65h1.28v-.932l-1.28.382zm58.748 2.262q.551-.092.903-.462.351-.37.351-.938 0-.769-.6-1.163-.6-.393-1.685-.393h-2.322v6.225h2.445q2.313 0 2.312-1.693 0-.686-.369-1.09-.369-.402-1.036-.484zm-2.063-2.115h.943q1.075 0 1.075.86 0 .421-.289.64t-.761.22h-.969v-1.721zm.969 4.54h-.97v-1.995h.952q1.173 0 1.173 1.006 0 .99-1.156.989zm5.594-3.954q-1.04 0-1.636.61-.596.607-.596 1.725 0 1.318.507 1.945t1.779.628q.64 0 1.187-.124t.724-.233V56.1q-.17.128-.604.27a2.8 2.8 0 0 1-.872.141q-.774 0-1.116-.356-.344-.358-.36-1.099h3.183v-.348q0-1.097-.582-1.716-.583-.618-1.614-.619m-.987 2.005q.027-1.273.988-1.272.471 0 .724.343.255.344.271.93zm13.036-1.452q-.596-.553-1.805-.553-2.401 0-2.401 2.335 0 1.354.525 1.963.524.61 1.876.61 1.227 0 1.815-.577.585-.577.586-1.995 0-1.228-.595-1.78zm-.965 3.15q-.263.406-.84.407-.595 0-.855-.399-.257-.398-.257-1.377 0-.806.257-1.167.259-.361.855-.361.585 0 .844.356.258.358.258 1.173 0 .96-.262 1.367m-7.918 1.093h1.245V50.55l-1.245.372zm2.436 0h1.245V50.55l-1.245.372zm-45.315-6.224-2 6.225h1.317l.472-1.707h1.995l.467 1.707h1.387l-1.982-6.225zm.023 3.67.769-2.773.759 2.772zm8.163-1.857q-.556-.385-1.597-.385-1.128 0-2.25.385v4.412h1.245v-3.79q.115-.063.419-.123.301-.06.56-.06.489 0 .707.27t.218.884v2.82H98.7v-3.26q0-.768-.555-1.153m8.26-.248q-.654.138-.903.239v4.421h1.245V53.37q.01 0 .156-.036.147-.038.271-.065a5 5 0 0 1 .316-.055q.19-.027.351-.028.249 0 .489.055v-.814q-.16-.055-.668-.055a6 6 0 0 0-1.258.137zm5.909-1.96h-1.075l-.765 1.264h.898zm-1.297 1.823q-1.04 0-1.637.61-.596.607-.596 1.725 0 1.318.507 1.945t1.778.628q.642 0 1.187-.124.547-.124.725-.233V56.1q-.169.128-.605.27a2.8 2.8 0 0 1-.872.141q-.773 0-1.116-.356-.342-.358-.36-1.099h3.184v-.348q0-1.097-.583-1.716-.582-.618-1.613-.618zm-.988 2.005q.027-1.273.988-1.272.47 0 .724.343.252.344.271.93h-1.984zm7.43.581a2.7 2.7 0 0 0-.925-.48 6 6 0 0 1-.925-.353q-.422-.205-.423-.453 0-.522 1.086-.522.666 0 1.423.375v-.806q-.72-.348-1.796-.348-.873 0-1.424.375t-.551 1.035q0 .411.276.714.276.302.667.462t.783.288q.391.129.667.298.275.169.276.398 0 .248-.294.407-.294.161-.853.16-.72 0-1.503-.402v.814q.179.11.707.233.529.124 1.187.124 1.004 0 1.524-.403.52-.402.521-1.117 0-.468-.423-.8zm-14.393-2.312q-.535-.275-1.369-.275-.88 0-1.441.604-.56.605-.56 1.73 0 1.364.56 1.968t1.805.604q1.209 0 2.259-.394V50.55l-1.254.375v1.723m0 3.643q-.435.193-.996.193t-.818-.426-.258-1.35q0-1.53 1.085-1.53a1.6 1.6 0 0 1 .356.042q.177.041.378.11.2.068.253.077z" fill="#fff"/>
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M25.106 17.864H9.963v27.083h15.143zm39.63 0H49.773v27.083h14.963zM37.44 9.424l-8.199 8.438v27.083h16.397V17.862z" fill="#CE1B1B"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="app-header">
+  <div class="app-header-inner">
+    <div class="brand">
+      <svg class="brand-logo" viewBox="0 0 150 67" width="64" height="29" role="img" aria-label="AIEP"><use href="#logo-aiep"></use></svg>
+      <span class="brand-divider" aria-hidden="true"></span>
+      <span class="brand-name">Blueprint de Servicios</span>
+    </div>
+    <nav class="header-nav" aria-label="Accesos rápidos">
+      <a href="#infraestructura">Infraestructura</a>
+    </nav>
+    <span class="brand-tag">Arquitectura Tecnológica</span>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="page-head">
+    <div class="page-head-title">
+      <svg class="page-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+        <path d="M3 9h18M9 21V9"></path>
+        <path d="M13 13h4M13 16.5h4"></path>
+      </svg>
+      <h1>Manual del Blueprint AIEP</h1>
+    </div>
     <p class="lead">Cómo construir un microservicio real sobre el blueprint: la arquitectura en cinco minutos, la configuración sin secretos, y el camino completo de una feature —entidad, modelo, repositorio Oracle/SQL&nbsp;Server, mapper y endpoint— con un tutorial de punta a punta.</p>
     <div class="meta-row">
       <span class="chip">solución: ApiBlueprint.sln</span>
       <span class="chip">TargetFramework: net8.0</span>
       <span class="chip">canónico: docs/MANUAL-DESARROLLADOR.md</span>
-      <span class="chip">v1 · 2026-09-09</span>
+      <span class="chip">v1.2 · 2026-09-15</span>
+    </div>
+    <div class="meta-row">
+      <a class="chip chip-link" href="#infra-desa">Infraestructura · Desarrollo (DESA) ↓</a>
+      <a class="chip chip-link" href="#infra-qa">Infraestructura · QA ↓</a>
     </div>
   </div>
-</header>
 
-<div class="layout">
   <nav class="toc" aria-label="Contenido">
     <h2>Fundamentos</h2>
     <ol>
@@ -397,13 +476,28 @@
       <li><a href="#seguridad"><span class="num">11</span>Seguridad</a></li>
       <li><a href="#logging"><span class="num">12</span>Logging</a></li>
       <li><a href="#pruebas"><span class="num">13</span>Pruebas</a></li>
+      <li><a href="#infraestructura"><span class="num">14</span>Infraestructura (middleware)</a></li>
     </ol>
     <h2>Práctica</h2>
     <ol>
-      <li><a href="#tutorial"><span class="num">14</span>Tutorial: feature “Alumno” (Banner)</a></li>
-      <li><a href="#aristas"><span class="num">15</span>Aristas frecuentes / FAQ</a></li>
-      <li><a href="#cheatsheet"><span class="num">16</span>Referencia rápida</a></li>
+      <li><a href="#tutorial"><span class="num">15</span>Tutorial: feature “Alumno” (Banner)</a></li>
+      <li><a href="#aristas"><span class="num">16</span>Aristas frecuentes / FAQ</a></li>
+      <li><a href="#cheatsheet"><span class="num">17</span>Referencia rápida</a></li>
     </ol>
+
+    <div class="toc-download">
+      <a class="toc-download-link" href="Lineamiento_desarrollo.pptx" download="Lineamiento_desarrollo.pptx">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3v12"></path>
+          <path d="M7 10l5 5 5-5"></path>
+          <path d="M4 19h16"></path>
+        </svg>
+        <span>
+          <strong>Lineamiento de Desarrollo</strong>
+          <em>.pptx · junto a este manual en docs/</em>
+        </span>
+      </a>
+    </div>
   </nav>
 
   <main>
@@ -1078,6 +1172,79 @@ Assert.IsFalse(list[1].Vigente);     <span class="c">// DBNull → default(bool)
       <pre><code>dotnet test ApiBlueprint.sln -c Release --collect:"XPlat Code Coverage"</code></pre>
     </section>
 
+    <section id="infraestructura">
+      <span class="sec-kicker">Operación</span>
+      <h2>Infraestructura institucional (middleware)</h2>
+      <p>Ningún microservicio nacido de este blueprint se expone directo a internet: todos pasan
+         por la capa de integración institucional de AIEP —Cloudflare, Azure Application Gateway
+         y Azure API Management— antes de llegar al backend. Lo que sigue es el resumen de
+         <strong>alto nivel</strong> de esa arquitectura; el detalle de direccionamiento IP, VMs y
+         puertos lo administra el equipo de Infraestructura.</p>
+
+      <h3>Camino de una request, de internet al backend</h3>
+      <pre><code>Internet
+   │
+Cloudflare                     dominio público: services{dev|qa|prod}.aiep.cl (TLS / WAF)
+   │
+Azure Application Gateway      VNet "Hub-Integración"
+   │
+   ├─ VNet peered Desarrollo    → Azure Data Factory + API Management (API Gateway)
+   ├─ VNet peered QA            → Azure Data Factory + API Management (API Gateway)
+   └─ VNet peered Producción    → Azure Data Factory + API Management (API Gateway)
+   │
+VPN Site-to-Site               (Azure ⇄ on-premise)
+   │
+Servidor on-premise del entorno: balanceador + API Gateway autoalojado + IIS +
+                                  SQL Server + Self-Hosted Integration Runtime
+   │
+Orígenes de datos: SQL Server on-premise · Oracle en OCI (primaria + réplica, un par por entorno)</code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Entorno</th><th>Dominio público</th><th>Rol</th></tr></thead>
+          <tbody>
+            <tr><td>Desarrollo (DESA)</td><td><code>servicesdev.aiep.cl</code></td><td>Primer despliegue de un servicio nuevo; red, Data Factory y API Management propios.</td></tr>
+            <tr><td>QA</td><td><code>servicesQA.aiep.cl</code></td><td>Validación previa a producción, aislada de Desarrollo en su propia red y API Management.</td></tr>
+            <tr><td>Producción</td><td><code>servicesProd.aiep.cl</code></td><td>Ambiente productivo; red, API Management y par OCI dedicados.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="infra-desa">Desarrollo (DESA)</h3>
+      <p>Es donde llega un servicio apenas sale de desarrollo local. Tiene su propia red virtual
+         <em>peered</em> en Azure (Data Factory + API Management) y su propio servidor on-premise
+         (balanceador, API Gateway autoalojado, IIS, SQL Server, Integration Runtime). Las bases
+         Oracle se sirven desde la réplica OCI compartida de Desarrollo/Test/QA. Dominio público:
+         <code>servicesdev.aiep.cl</code>.</p>
+
+      <h3 id="infra-qa">QA</h3>
+      <p>Misma arquitectura que Desarrollo, pero en su propia red virtual y su propio API
+         Management: las pruebas de un servicio no interfieren con el desarrollo en curso de otro.
+         Comparte el par OCI de Desarrollo/Test/QA con una instancia lógica distinta. Dominio
+         público: <code>servicesQA.aiep.cl</code>.</p>
+
+      <h3>Producción</h3>
+      <p>Red virtual, API Management y servidores on-premise dedicados; la base Oracle vive en el
+         par OCI-Primaria/Réplica exclusivo de Producción. Dominio público:
+         <code>servicesProd.aiep.cl</code>. El paso a Producción sigue el proceso de release del
+         equipo de Infraestructura, no un despliegue directo del equipo de desarrollo.</p>
+
+      <div class="note">
+        <span class="label">Qué significa para tu servicio</span>
+        <p>El <code>Database:Provider</code> y la cadena de conexión de tu blueprint apuntan a la
+           base del entorno donde despliegas (SQL Server on-premise u Oracle en OCI). El nombre
+           público que consumirán los clientes sigue el patrón <code>services{entorno}.aiep.cl</code>;
+           TLS y WAF ya los resuelve Cloudflare + Application Gateway antes de llegar a tu API.</p>
+      </div>
+
+      <div class="warn">
+        <span class="label">Alcance de este resumen</span>
+        <p>Es intencionalmente de alto nivel: no incluye direccionamiento IP, nombres de VM ni
+           puertos. Para el detalle de red, o para solicitar una integración nueva, contacta al
+           equipo de Infraestructura.</p>
+      </div>
+    </section>
+
     <section id="tutorial">
       <span class="sec-kicker">Práctica</span>
       <h2>Tutorial: feature “Alumno” (ERP Banner) de punta a punta</h2>
@@ -1251,6 +1418,13 @@ AzureAppConfig__Endpoint = https://appcs-...   (vacío = no usar App Config)</co
 
   </main>
 </div>
+
+<footer class="app-footer">
+  <div class="app-footer-inner">
+    <svg class="brand-logo" viewBox="0 0 150 67" width="46" height="21" role="img" aria-label="AIEP"><use href="#logo-aiep"></use></svg>
+    <p>Blueprint de Servicios · Plataforma de Excelencia</p>
+  </div>
+</footer>
 
 <script>
   (function () {

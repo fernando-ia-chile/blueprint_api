@@ -1,11 +1,9 @@
 using System.Data;
 using AIEP.Application.Model.Models;
 using AIEP.Application.Repository.Infrastructure;
-using AIEP.Application.Repository.Options;
 using AIEP.Domain.DataBlueprint.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace AIEP.Application.Repository.Repository.Recurso
 {
@@ -28,10 +26,9 @@ namespace AIEP.Application.Repository.Repository.Recurso
 
         public RecursoRepository(
             IDbConnectionFactory connectionFactory,
-            IOptions<DatabaseOptions> databaseOptions,
             IConfiguration configuration,
             ILogger<RecursoRepository> logger)
-            : base(connectionFactory, databaseOptions, logger)
+            : base(connectionFactory, logger)
         {
             _storedProcedureName = configuration.GetValue<string>("Conf:StoredProcedureName")
                 ?? DefaultStoredProcedureName;

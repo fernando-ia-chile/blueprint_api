@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace AIEP.Test
@@ -30,7 +31,7 @@ namespace AIEP.Test
                 .AddJsonFile("Settings/appsettings.json", optional: false)
                 .Build();
 
-            Mapper = new MapperConfiguration(cfg => cfg.AddProfile(new TProfile())).CreateMapper();
+            Mapper = new MapperConfiguration(cfg => cfg.AddProfile(new TProfile()), NullLoggerFactory.Instance).CreateMapper();
 
             Logic = (TLogic)Activator.CreateInstance(
                 typeof(TLogic),

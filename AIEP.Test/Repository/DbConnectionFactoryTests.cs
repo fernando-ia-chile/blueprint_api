@@ -65,6 +65,40 @@ namespace AIEP.Test.Repository
         }
 
         [Test]
+        public void Constructor_SoloConnectionStringDirecto_Construye()
+        {
+            // Sin ConnectionStringName (no se intenta Vault): usa el valor literal.
+            var options = Options.Create(new DatabaseOptions
+            {
+                Provider = DbProviderType.SqlServer,
+                ConnectionStringName = null,
+                ConnectionString = "Data Source=directo;User Id=x;Password=y;"
+            });
+
+            var factory = new DbConnectionFactory(options, BuildConfig(connectionString: null));
+            using var connection = factory.CreateConnection();
+
+            Assert.AreEqual("Data Source=directo;User Id=x;Password=y;", connection.ConnectionString);
+        }
+
+        [Test]
+        public void Constructor_VaultTienePrioridadSobreConnectionStringDirecto()
+        {
+            // Las dos fuentes tienen valor: debe ganar la de Vault (ConnectionStrings:BlueprintDb), no la directa.
+            var options = Options.Create(new DatabaseOptions
+            {
+                Provider = DbProviderType.SqlServer,
+                ConnectionStringName = "BlueprintDb",
+                ConnectionString = "Data Source=directo;User Id=x;Password=y;"
+            });
+
+            var factory = new DbConnectionFactory(options, BuildConfig(connectionString: "Data Source=vault;User Id=x;Password=y;"));
+            using var connection = factory.CreateConnection();
+
+            Assert.AreEqual("Data Source=vault;User Id=x;Password=y;", connection.ConnectionString);
+        }
+
+        [Test]
         public void AddRefCursor_Oracle_AgregaParametro_SqlServer_DevuelveNull()
         {
             var oracle = CreateFactory(DbProviderType.Oracle);

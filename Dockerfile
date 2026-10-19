@@ -1,5 +1,5 @@
 # ---------- build ----------
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copiar manifiestos primero para aprovechar la cache de restore.
@@ -18,7 +18,7 @@ RUN dotnet publish "AIEP.Application.Api.Blueprint/AIEP.Application.Api.Blueprin
     -c Release -o /app/publish /p:UseAppHost=false
 
 # ---------- runtime ----------
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 ENV ASPNETCORE_ENVIRONMENT=Production \
@@ -29,7 +29,7 @@ ENV ASPNETCORE_ENVIRONMENT=Production \
 EXPOSE 8080
 COPY --from=build /app/publish .
 
-# Usuario no-root que ya trae la imagen aspnet:8.0.
+# Usuario no-root que ya trae la imagen aspnet:10.0.
 USER $APP_UID
 
 ENTRYPOINT ["dotnet", "AIEP.Application.Api.Blueprint.dll"]

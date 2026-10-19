@@ -4,11 +4,8 @@ using AIEP.Application.Api.Blueprint.Options;
 using AIEP.Application.Api.Blueprint.Utilities;
 using AIEP.Application.Logic.Logic;
 using AIEP.Application.Repository;
-using AIEP.Application.Repository.Options;
-using Azure.Identity;
+using Asp.Versioning;
 using Azure.Security.KeyVault.Secrets;
-using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using NLog;
@@ -20,28 +17,25 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    // Credencial unica: Managed Identity en Azure, identidad de Azure Arc on-prem,
-    // Azure CLI / Visual Studio en local. Nunca secretos en archivos de configuracion.
-    var azureCredential = new DefaultAzureCredential();
+    // Credencial explicita (ver AzureCredentialFactory): Managed Identity en Azure o en un
+    // servidor con agente de Azure Arc, identidad de Azure CLI / Visual Studio en local.
+    // Nunca secretos en archivos de configuracion.
+    var azureCredential = AzureCredentialFactory.Create(builder.Configuration);
 
-    // -- Azure App Configuration (+ referencias a Key Vault) -------------------------------
-    var appConfigEndpoint = builder.Configuration["AzureAppConfig:Endpoint"];
-    var useAppConfiguration = !string.IsNullOrWhiteSpace(appConfigEndpoint);
-    if (useAppConfiguration)
+    // -- Key Vault directo (sin Azure App Configuration) -----------------------------------
+    // Carga, una sola vez al arrancar, los secretos "blueprint-*" del Vault directo a
+    // IConfiguration -- BlueprintKeyVaultSecretManager mapea "blueprint-<nombre>-connectionstring"
+    // a ConnectionStrings:<nombre> y "blueprint-api-key" a Conf:ApiKey. Sin llamadas a Key Vault
+    // por request (a diferencia de AIEP-Servicios-Sedes_AzArc). Debe ir ANTES de
+    // AddBlueprintRepository: esa extension resuelve ConnectionStrings:<Nombre> al registrar cada
+    // conexion.
+    var keyVaultUri = builder.Configuration["Conf:KeyVaultUri"];
+    if (!string.IsNullOrWhiteSpace(keyVaultUri))
     {
-        builder.Configuration.AddAzureAppConfiguration(options =>
-        {
-            options.Connect(new Uri(appConfigEndpoint!), azureCredential)
-                   .ConfigureKeyVault(kv => kv.SetCredential(azureCredential))
-                   .Select("Blueprint:*", LabelFilter.Null)
-                   .Select("Blueprint:*", builder.Environment.EnvironmentName)
-                   .TrimKeyPrefix("Blueprint:")
-                   .ConfigureRefresh(refresh => refresh
-                       .Register("Blueprint:Sentinel", refreshAll: true)
-                       .SetRefreshInterval(TimeSpan.FromMinutes(5)));
-        }, optional: true);
-
-        builder.Services.AddAzureAppConfiguration();
+        builder.Configuration.AddAzureKeyVault(
+            new Uri(keyVaultUri),
+            azureCredential,
+            new BlueprintKeyVaultSecretManager());
     }
 
     // -- CORS ---------------------------------------------------------------------------
@@ -72,14 +66,12 @@ try
     // AddBlueprintRepository enlaza y valida (DataAnnotations) DatabaseOptions; aqui solo
     // añadimos la validacion al arranque (extension del host, disponible en el proyecto API).
     builder.Services.AddBlueprintRepository(builder.Configuration);
-    builder.Services.AddOptions<DatabaseOptions>().ValidateOnStart();
     builder.Services.AddScoped<RecursoLogic>();
 
     builder.Services.AddHttpClient();
     builder.Services.AddControllers();
 
     // SecretClient singleton para necesidades ad-hoc (NO se usa por request en el middleware).
-    var keyVaultUri = builder.Configuration["Conf:KeyVaultUri"];
     if (!string.IsNullOrWhiteSpace(keyVaultUri))
     {
         builder.Services.AddSingleton(new SecretClient(new Uri(keyVaultUri), azureCredential));
@@ -88,17 +80,32 @@ try
     // -- Versionado de API ----------------------------------------------------------
     builder.Services.AddApiVersioning(opt =>
     {
-        opt.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
+        opt.DefaultApiVersion = new ApiVersion(1, 0);
         opt.AssumeDefaultVersionWhenUnspecified = true;
         opt.ReportApiVersions = true;
         opt.ApiVersionReader = ApiVersionReader.Combine(
             new UrlSegmentApiVersionReader(),
             new HeaderApiVersionReader("x-api-version"),
             new MediaTypeApiVersionReader("x-api-version"));
+    }).AddMvc().AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'VVV";
+        options.SubstituteApiVersionInUrl = true;
     });
 
     // -- AutoMapper ---------------------------------------------------------------
-    builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+    // AutoMapper 16.2.0 con licencia comercial de LuckyPenny Software (ver
+    // AIEP.Application.Api.Blueprint.csproj). Desde la 15, AddAutoMapper exige una accion de
+    // configuracion; la key real se lee de Conf:AutoMapperLicenseKey (appsettings / variable de
+    // entorno -- no es secreta, solo de auditoria, no necesita Key Vault).
+    builder.Services.AddAutoMapper(cfg =>
+    {
+        var autoMapperLicenseKey = builder.Configuration["Conf:AutoMapperLicenseKey"];
+        if (!string.IsNullOrWhiteSpace(autoMapperLicenseKey))
+        {
+            cfg.LicenseKey = autoMapperLicenseKey;
+        }
+    }, AppDomain.CurrentDomain.GetAssemblies());
 
     // -- Swagger ----------------------------------------------------------------
     builder.Services.AddEndpointsApiExplorer();
@@ -149,11 +156,6 @@ try
     builder.Host.UseNLog();
 
     var app = builder.Build();
-
-    if (useAppConfiguration)
-    {
-        app.UseAzureAppConfiguration();
-    }
 
     app.UseSwagger();
     app.UseSwaggerUI();

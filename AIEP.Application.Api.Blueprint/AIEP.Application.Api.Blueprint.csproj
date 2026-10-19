@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>AIEP.Application.Api.Blueprint</RootNamespace>
@@ -11,15 +11,26 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
-    <PackageReference Include="Azure.Identity" Version="1.13.1" />
-    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.6.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
-    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="2.19.1" />
+    <!-- AIEP compro licencia comercial de LuckyPenny Software para AutoMapper (el tier Community
+         gratuito no aplica: excluye universidades/institutos de educacion superior que lo usen
+         para software institucional/operacional, que es este caso). Con licencia, 16.2.0 resuelve
+         el advisory NU1903/GHSA-rvv3-g6hj-g44x (parcheado desde 15.1.1/16.1.1). La key real NO va
+         en este archivo: ver Conf:AutoMapperLicenseKey en appsettings.json / Program.cs. Fusiona
+         AutoMapper.Extensions.Microsoft.DependencyInjection desde la v13; no se referencia aparte. -->
+    <PackageReference Include="AutoMapper" Version="16.2.0" />
+    <PackageReference Include="Asp.Versioning.Mvc" Version="10.2.1" />
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.2.1" />
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.2" />
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.11.2" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="4.16.1" />
     <PackageReference Include="NLog" Version="5.3.4" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.14" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+
+    <!-- Pin directo: Microsoft.Identity.Web 4.16.1 trae System.Security.Cryptography.Pkcs 10.0.10
+         transitivamente, version con advisories NU1902/NU1903 conocidas. 10.0.13 las resuelve. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
 
   <ItemGroup>

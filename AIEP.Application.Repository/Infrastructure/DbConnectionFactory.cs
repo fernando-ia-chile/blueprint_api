@@ -36,15 +36,12 @@ namespace AIEP.Application.Repository.Infrastructure
                     $"Valor de configuracion 'Database:Provider' no soportado: '{value.Provider}'.")
             };
 
-            var connectionStringName = string.IsNullOrWhiteSpace(value.ConnectionStringName)
-                ? "BlueprintDb"
-                : value.ConnectionStringName;
-
-            _connectionString = configuration.GetConnectionString(connectionStringName)
+            _connectionString = value.ResolveConnectionString(configuration)
                 ?? throw new InvalidOperationException(
-                    $"No se encontro la cadena de conexion 'ConnectionStrings:{connectionStringName}'. " +
-                    "En entornos desplegados la entrega Azure App Configuration / Key Vault; " +
-                    "en local use 'dotnet user-secrets' o variables de entorno.");
+                    $"No se encontro una cadena de conexion usable para esta conexion. Se intento " +
+                    $"'ConnectionStrings:{value.ConnectionStringName}' (Azure App Configuration / Key Vault) " +
+                    "y el valor literal 'ConnectionString' en Database:Connections -- ninguno de los dos " +
+                    "esta configurado.");
         }
 
         public DbConnection CreateConnection() => _adapter.CreateConnection(_connectionString);

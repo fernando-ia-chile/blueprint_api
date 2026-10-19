@@ -1,6 +1,7 @@
 using AIEP.Application.Api.Blueprint.Utilities;
 using AIEP.Application.Logic.Logic;
 using AIEP.Application.Model.Models.Recurso;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web.Resource;
