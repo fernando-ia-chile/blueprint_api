@@ -39,9 +39,9 @@ namespace AIEP.Application.Repository.Infrastructure
             _connectionString = value.ResolveConnectionString(configuration)
                 ?? throw new InvalidOperationException(
                     $"No se encontro una cadena de conexion usable para esta conexion. Se intento " +
-                    $"'ConnectionStrings:{value.ConnectionStringName}' (Azure App Configuration / Key Vault) " +
-                    "y el valor literal 'ConnectionString' en Database:Connections -- ninguno de los dos " +
-                    "esta configurado.");
+                    $"'ConnectionStrings:{value.ConnectionStringName}' (Key Vault directo / appsettings / " +
+                    "user-secrets) y el valor literal 'ConnectionString' en Database:Connections -- " +
+                    "ninguno de los dos esta configurado.");
         }
 
         public DbConnection CreateConnection() => _adapter.CreateConnection(_connectionString);

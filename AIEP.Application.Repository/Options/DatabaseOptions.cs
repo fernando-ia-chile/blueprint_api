@@ -18,7 +18,7 @@ namespace AIEP.Application.Repository.Options
 
         /// <summary>
         /// Nombre logico de la cadena de conexion (seccion <c>ConnectionStrings</c>, poblada por
-        /// Azure App Configuration / Key Vault). Puede venir vacio si esta conexion no usa Vault
+        /// Key Vault directo). Puede venir vacio si esta conexion no usa Vault
         /// (ver <see cref="ConnectionString"/>) o si no se usa en absoluto.
         /// </summary>
         public string? ConnectionStringName { get; set; }

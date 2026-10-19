@@ -118,13 +118,26 @@ entorno → **Key Vault** (cargado antes de que el host termine de armar la conf
 
 Cada entrada de `Database:Connections` queda registrada como un `IDbConnectionFactory` **keyed**
 (`AddKeyedSingleton`) con ese mismo nombre — pueden estar activas varias conexiones a la vez,
-cada una con su propio proveedor, timeout y secreto de Key Vault. Un repositorio elige, por
-configuración, cuál usa: `RecursoRepository` resuelve la conexión que indique
-`Conf:RecursoConnectionName` (`OracleDb` en producción/QA, `SqlServerDb` en Development, para poder
-probar el feature contra el otro motor sin tocar código). Para sumar una conexión nueva: agregar su
-bloque a `Database:Connections` y su secreto en Key Vault (`blueprint-<nombre>-connectionstring`),
-e inyectar `[FromKeyedServices("Nombre")] IDbConnectionFactory` (o resolverla por config, como hace
-`AddBlueprintRepository` con `RecursoRepository`) en el repositorio que la use.
+cada una con su propio proveedor, timeout y secreto de Key Vault. Para sumar una conexión nueva:
+agregar su bloque a `Database:Connections` y su secreto en Key Vault
+(`blueprint-<nombre>-connectionstring`), e inyectar `[FromKeyedServices("Nombre")] IDbConnectionFactory`
+en el repositorio que la use.
+
+`IRecursoRepository` sigue el mismo patrón, un nivel más arriba: `AddBlueprintRepository` lo
+registra **keyed** (`"OracleDb"` / `"SqlServerDb"`, explícito para los dos motores que el feature
+conoce — no por el `foreach` genérico de conexiones) y **además**, sin key, delegando en el keyed
+que indique `Conf:RecursoConnectionName` (`OracleDb` en producción/QA, `SqlServerDb` en
+Development, para poder probar el feature contra el otro motor sin tocar código) — ese es el que
+usan `RecursoLogic`/`RecursoController` hoy.
+
+Las dos vías quedan disponibles en paralelo: `RecursoLogicOracle` y `RecursoLogicSqlServer`
+(`AIEP.Application.Logic/Logic/`) son el ejemplo de referencia que pide cada motor explícito —
+`[FromKeyedServices("OracleDb")] IRecursoRepository` / `[FromKeyedServices("SqlServerDb")] IRecursoRepository`
+en el constructor, misma lógica de negocio que `RecursoLogic`. Pensado para un proyecto real con
+dos controllers independientes, cada uno contra su propia BD (ese Controller no viene incluido —
+se arma copiando `RecursoController` tal como se copiaría para `RecursoLogic`). Si el proyecto solo
+necesita un motor, ambas clases (y sus tests) se pueden borrar sin afectar a
+`RecursoLogic`/`RecursoController`.
 
 **Cómo se resuelve cada cadena — Vault con prioridad, valor directo como respaldo:**
 `DatabaseOptions.ResolveConnectionString` intenta, en orden:
@@ -216,6 +229,33 @@ Además, un `SecretClient` singleton queda registrado (`Conf:KeyVaultUri`, ver `
 cualquier necesidad **ad-hoc** de código que quiera leer un secreto puntual — nunca una llamada a
 Key Vault por request, a diferencia de `AIEP-Servicios-Sedes_AzArc`.
 
+### Si no tienes acceso al Key Vault
+
+`Program.cs` envuelve la carga del Vault en un `try/catch`: si falla (sin rol RBAC asignado, sin
+red, etc.), queda un `logger.Warn` y **el arranque sigue** con lo que ya haya en
+`appsettings*.json`, variables de entorno o `user-secrets` — nunca revienta la app por no tener
+acceso al Vault.
+
+El respaldo **oficial** para desarrollo local es [`dotnet user-secrets`](https://learn.microsoft.com/aspnet/core/security/app-secrets)
+(mecanismo propio de .NET; `WebApplication.CreateBuilder` ya lo carga solo en Development). Nunca
+se sube al repo — vive fuera del proyecto, en `%APPDATA%\Microsoft\UserSecrets` (Windows) o
+`~/.microsoft/usersecrets` (Linux/Mac):
+
+```bash
+cd AIEP.Application.Api.Blueprint
+dotnet user-secrets init                               # una sola vez por proyecto (ya tiene UserSecretsId)
+dotnet user-secrets set "ConnectionStrings:SqlServerDb" "cadena-local"
+dotnet user-secrets set "Conf:ApiKey" "valor-local"
+```
+
+Mismas claves que usa Key Vault (`ConnectionStrings:<Nombre>`, `Conf:ApiKey`), misma prioridad:
+Vault gana si llega a resolver algo; si no (falló, o directamente no hay `Conf:KeyVaultUri`), lo que
+haya en user-secrets queda vigente — cubre tanto las conexiones (mismo mecanismo que el campo
+`ConnectionString` directo en `Database:Connections`, documentado arriba) como `Conf:ApiKey`, que
+antes dependía 100% del Vault y no tenía respaldo. Preferible al campo `ConnectionString` directo en
+`appsettings.Development.json` cuando el valor es una credencial real, justamente para no arriesgar
+que termine commiteada.
+
 ### Identidad (roles RBAC / access policy)
 
 La identidad que ejecuta el servicio necesita acceso de lectura al Key Vault — **no asumir que usa
@@ -239,8 +279,9 @@ máquina realmente está funcionando; esta fábrica obliga a declarar explícita
   system- o user-assigned (`Auth:ManagedIdentityClientId`). Cubre:
   - **Azure** (App Service / Container Apps / AKS Workload Identity): habilitar la identidad y
     darle acceso al Key Vault (rol o access policy según corresponda, ver tabla arriba) — sin
-    esto, `AddAzureKeyVault` no resuelve ninguna cadena y el arranque depende por completo del
-    valor directo en `Database:Connections` (ver punto 3 de abajo).
+    esto, `AddAzureKeyVault` no resuelve ninguna cadena (se atrapa el error, ver "Si no tienes
+    acceso al Key Vault" arriba) y el arranque depende por completo del valor directo en
+    `Database:Connections` o de `Conf:ApiKey` puesto a mano.
   - **Azure Arc** (servidores on-prem): instalar el agente Arc; la máquina obtiene la misma
     Managed Identity, expuesta vía `IDENTITY_ENDPOINT` / `IMDS_ENDPOINT`. Darle el mismo acceso a
     la identidad de la máquina Arc. La cuenta del proceso debe pertenecer al grupo `himds`
@@ -248,11 +289,11 @@ máquina realmente está funcionando; esta fábrica obliga a declarar explícita
 - **`Auth:UseManagedIdentity = false`** (Development) → identidad del desarrollador
   (`VisualStudioCredential` / `az login`), nunca usada en servidor; el usuario AAD necesita el
   mismo acceso al Key Vault. **Si el desarrollador no lo tiene** (pasa con algunas instalaciones
-  de Visual Studio + Azure Arc, la app se cae al no poder leer el Vault): no hace falta esperar a
-  que se los den. Para las conexiones de BD, escribir el valor directo en
-  `Database:Connections:<Nombre>:ConnectionString` (ver sección "Más de una conexión de BD"
-  arriba) — Vault sigue ganando si llega a resolver algo. `Conf:ApiKey` sigue necesitando acceso al
-  Vault por ahora (no tiene el mismo respaldo; señalado como pendiente si se repite el problema).
+  de Visual Studio + Azure Arc): la app **ya no se cae** — ver "Si no tienes acceso al Key Vault"
+  arriba. El respaldo recomendado es `dotnet user-secrets` (cubre tanto conexiones como
+  `Conf:ApiKey`); el campo `ConnectionString` directo en `Database:Connections` (ver "Más de una
+  conexión de BD") sigue disponible como alternativa, con el mismo riesgo de commit si se escribe
+  en la base compartida.
 
 ## Ejecutar en local
 

@@ -29,13 +29,28 @@ try
     // por request (a diferencia de AIEP-Servicios-Sedes_AzArc). Debe ir ANTES de
     // AddBlueprintRepository: esa extension resuelve ConnectionStrings:<Nombre> al registrar cada
     // conexion.
+    //
+    // Si el Vault no es alcanzable (ej. un desarrollador sin rol RBAC asignado), no debe tirar
+    // abajo el arranque completo: se registra un warning y la app sigue con lo que ya haya en
+    // appsettings/user-secrets/variables de entorno (ResolveConnectionString y Conf:ApiKey usan
+    // esa misma cadena de prioridad -- ver README "Si no tienes acceso al Key Vault").
     var keyVaultUri = builder.Configuration["Conf:KeyVaultUri"];
     if (!string.IsNullOrWhiteSpace(keyVaultUri))
     {
-        builder.Configuration.AddAzureKeyVault(
-            new Uri(keyVaultUri),
-            azureCredential,
-            new BlueprintKeyVaultSecretManager());
+        try
+        {
+            builder.Configuration.AddAzureKeyVault(
+                new Uri(keyVaultUri),
+                azureCredential,
+                new BlueprintKeyVaultSecretManager());
+        }
+        catch (Exception ex)
+        {
+            logger.Warn(ex,
+                "No se pudo leer Key Vault ({KeyVaultUri}) -- se usaran appsettings/user-secrets/" +
+                "variables de entorno como respaldo (ConnectionStrings:<Nombre>, Conf:ApiKey).",
+                keyVaultUri);
+        }
     }
 
     // -- CORS ---------------------------------------------------------------------------
@@ -67,6 +82,12 @@ try
     // añadimos la validacion al arranque (extension del host, disponible en el proyecto API).
     builder.Services.AddBlueprintRepository(builder.Configuration);
     builder.Services.AddScoped<RecursoLogic>();
+
+    // Ejemplo de referencia (ver RecursoLogicOracle/RecursoLogicSqlServer): demuestra el
+    // repositorio keyed por motor. Seguro de borrar junto con esas clases si el proyecto no las
+    // necesita.
+    builder.Services.AddScoped<RecursoLogicOracle>();
+    builder.Services.AddScoped<RecursoLogicSqlServer>();
 
     builder.Services.AddHttpClient();
     builder.Services.AddControllers();

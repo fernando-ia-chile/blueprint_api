@@ -5,8 +5,8 @@ using Microsoft.Extensions.Configuration;
 namespace AIEP.Application.Api.Blueprint.Utilities
 {
     /// <summary>
-    /// Resuelve explicitamente la credencial de Azure usada para leer Azure App Configuration /
-    /// Key Vault, en vez de <c>DefaultAzureCredential</c>. A proposito: una cadena implicita
+    /// Resuelve explicitamente la credencial de Azure usada para leer Key Vault directo, en vez
+    /// de <c>DefaultAzureCredential</c>. A proposito: una cadena implicita
     /// prueba varias credenciales en silencio y no deja saber si la Managed Identity de la
     /// maquina (Azure o servidor Azure Arc on-prem) realmente esta funcionando.
     /// </summary>

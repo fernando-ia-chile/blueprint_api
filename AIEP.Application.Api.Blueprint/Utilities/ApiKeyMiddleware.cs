@@ -4,8 +4,9 @@ using Microsoft.Extensions.Options;
 namespace AIEP.Application.Api.Blueprint.Utilities
 {
     /// <summary>
-    /// Valida la API key entrante contra el valor vigente (entregado por App Configuration /
-    /// Key Vault mediante <see cref="IOptionsMonitor{TOptions}"/>, refrescable en caliente).
+    /// Valida la API key entrante contra el valor vigente (entregado por Key Vault directo, o por
+    /// appsettings/user-secrets como respaldo si el Vault no es alcanzable, mediante
+    /// <see cref="IOptionsMonitor{TOptions}"/>, refrescable en caliente).
     /// A diferencia del original: no consulta Key Vault por request, no usa
     /// <c>ClientSecretCredential</c> y no lleva keys embebidas en el codigo.
     /// </summary>
@@ -53,7 +54,7 @@ namespace AIEP.Application.Api.Blueprint.Utilities
 
                 if (allowed.Count == 0)
                 {
-                    _logger.LogError("No hay ninguna API key configurada (Conf:ApiKey). Revise App Configuration / Key Vault.");
+                    _logger.LogError("No hay ninguna API key configurada (Conf:ApiKey). Revise Key Vault o el respaldo en appsettings/user-secrets.");
                     await WriteUnauthorizedAsync(context, "Aplicación no autorizada (usando ApiKeyMiddleware)");
                     return;
                 }

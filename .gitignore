@@ -279,3 +279,9 @@ app/bundles
 *.local.json
 appsettings.*.local.json
 .vscode/
+
+# Ignorar archivo HANDOFF.md
+HANDOFF.md
+
+# Ignorar carpeta .codegraph completa
+.codegraph/

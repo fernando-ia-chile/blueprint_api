@@ -10,7 +10,8 @@ namespace AIEP.Test.Repository
     /// <summary>
     /// Verifica el soporte de mas de una conexion de BD simultanea: cada entrada de
     /// <c>Database:Connections</c> queda registrada como <see cref="IDbConnectionFactory"/>
-    /// keyed por nombre, y <see cref="IRecursoRepository"/> usa la conexion que indique
+    /// keyed por nombre. <see cref="IRecursoRepository"/> queda keyed igual (resoluble en
+    /// paralelo para ambos motores) y, sin key, usa la conexion que indique
     /// <c>Conf:RecursoConnectionName</c> (configurable por entorno).
     /// </summary>
     [TestFixture]
@@ -89,6 +90,30 @@ namespace AIEP.Test.Repository
             var recursoRepository = provider.GetRequiredService<IRecursoRepository>();
 
             Assert.IsNotNull(recursoRepository);
+        }
+
+        [Test]
+        public void AddBlueprintRepository_RecursoRepository_ResuelveKeyedPorNombre()
+        {
+            using var provider = BuildProvider(BuildConfig());
+
+            var oracle = provider.GetRequiredKeyedService<IRecursoRepository>("OracleDb");
+            var sqlServer = provider.GetRequiredKeyedService<IRecursoRepository>("SqlServerDb");
+
+            Assert.IsNotNull(oracle);
+            Assert.IsNotNull(sqlServer);
+            Assert.AreNotSame(oracle, sqlServer);
+        }
+
+        [Test]
+        public void AddBlueprintRepository_RecursoRepository_SinKey_DelegaEnElKeyedConfigurado()
+        {
+            using var provider = BuildProvider(BuildConfig(recursoConnectionName: "SqlServerDb"));
+
+            var sinKey = provider.GetRequiredService<IRecursoRepository>();
+            var keyedSqlServer = provider.GetRequiredKeyedService<IRecursoRepository>("SqlServerDb");
+
+            Assert.AreEqual(keyedSqlServer.GetType(), sinKey.GetType());
         }
 
         [Test]
