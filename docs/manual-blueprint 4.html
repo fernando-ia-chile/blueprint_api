@@ -453,6 +453,25 @@
   }
   .step-shot-row { display: flex; flex-wrap: wrap; gap: .75rem; }
   .step-shot-row .step-shot { max-width: 320px; }
+
+  /* Marcador de captura no disponible (lo inserta el script del final si la imagen no carga) */
+  .shot-missing {
+    display: flex; align-items: center; gap: .8rem;
+    width: 100%; max-width: 640px; margin: .75rem 0;
+    padding: .7rem .9rem;
+    background: var(--sunken); border: 1px dashed var(--border-table); border-radius: 8px;
+  }
+  .shot-missing-icon {
+    display: grid; place-items: center; flex: none;
+    width: 2.25rem; height: 2.25rem; border-radius: 8px;
+    background: var(--secondary-cyan-20); color: var(--accent);
+  }
+  .shot-missing-text { display: flex; flex-direction: column; min-width: 0; gap: .1rem; }
+  .shot-missing-text strong {
+    font-family: var(--font-ubuntu); font-size: .82rem; font-weight: 500; color: var(--accent-ink);
+  }
+  .shot-missing-text > span { font-size: .74rem; line-height: 1.4; color: var(--text-muted); }
+  .step-shot-row .shot-missing { max-width: 320px; }
   .kv-list { list-style: none; margin: .5rem 0; padding: 0; font-family: var(--font-mono); font-size: .82rem; }
   .kv-list li { padding: .15rem 0; }
   .kv-list li b { font-family: var(--font-verdana); font-weight: 700; color: var(--text); }
@@ -561,7 +580,7 @@
     <p class="lead">Cómo construir un microservicio real sobre el blueprint: la arquitectura en cinco minutos, la configuración sin secretos, y el camino completo de una feature —entidad, modelo, repositorio Oracle/SQL&nbsp;Server, mapper y endpoint— con un tutorial de punta a punta.</p>
     <div class="meta-row">
       <span class="chip">solución: ApiBlueprint.sln</span>
-      <span class="chip">TargetFramework: net8.0</span>
+      <span class="chip">TargetFramework: net10.0</span>
       <span class="chip">canónico: docs/MANUAL-DESARROLLADOR.md</span>
       <span class="chip">v1.2 · 2026-09-15</span>
     </div>
@@ -683,7 +702,7 @@ List&lt;RecursoEntity&gt;   ── AutoMapper ──▶  List&lt;Recurso&gt; (DT
         <table>
           <thead><tr><th>Servicio</th><th>Lifetime</th><th>Por qué</th></tr></thead>
           <tbody>
-            <tr><td><code>IDbConnectionFactory</code></td><td><span class="pill">Singleton</span></td><td>Stateless. Resuelve el proveedor y la cadena una vez; cada conexión se crea por llamada.</td></tr>
+            <tr><td><code>IDbConnectionFactory</code></td><td><span class="pill">Singleton · keyed</span></td><td>Stateless. Hay una por cada conexión de <code>Database:Connections</code>, registrada con su nombre como key. Resuelve el proveedor y la cadena una vez; cada conexión se crea por llamada.</td></tr>
             <tr><td><code>I*Repository</code></td><td><span class="pill">Scoped</span></td><td>Vive lo que dura la request; no comparte estado entre requests.</td></tr>
             <tr><td><code>*Logic</code></td><td><span class="pill">Scoped</span></td><td>Igual que el repo que consume.</td></tr>
             <tr><td><code>IMapper</code></td><td><span class="pill">Singleton</span></td><td>Lo registra AutoMapper; la configuración es inmutable.</td></tr>
@@ -696,7 +715,7 @@ List&lt;RecursoEntity&gt;   ── AutoMapper ──▶  List&lt;Recurso&gt; (DT
     <section id="configuracion">
       <span class="sec-kicker">Fundamento 2</span>
       <h2>Configuración (appsettings)</h2>
-      <p>El principio rector: <strong>los secretos no viajan en archivos</strong>. <code>appsettings.json</code> sólo lleva valores no sensibles. La cadena de conexión y la API key las entrega Azure App Configuration como referencias a Key Vault, autenticado con <code>DefaultAzureCredential</code>.</p>
+      <p>El principio rector: <strong>los secretos no viajan en archivos</strong>. <code>appsettings.json</code> sólo lleva valores no sensibles. En los entornos desplegados, la cadena de conexión de cada BD y la API key llegan <strong>directo desde Key Vault</strong> —sin Azure App Configuration de por medio—, cargadas a <code>IConfiguration</code> una sola vez al arrancar. La credencial no es <code>DefaultAzureCredential</code>: la resuelve <code>AzureCredentialFactory</code> de forma explícita (Managed Identity en Azure o en un servidor con Azure Arc; tu identidad local en Development).</p>
 
       <h3>Claves y su origen</h3>
       <div class="table-wrap">
@@ -704,15 +723,20 @@ List&lt;RecursoEntity&gt;   ── AutoMapper ──▶  List&lt;Recurso&gt; (DT
           <thead><tr><th>Clave</th><th>Ejemplo / valor</th><th>Origen</th></tr></thead>
           <tbody>
             <tr><td><code>AzureAd:TenantId</code> / <code>ClientId</code></td><td><code>&lt;guid&gt;</code></td><td>appsettings (no sensible; <strong>sin</strong> <code>ClientSecret</code>)</td></tr>
-            <tr><td><code>AzureAppConfig:Endpoint</code></td><td><code>https://appcs-aiep-desa.azconfig.io</code></td><td>appsettings; vacío en local</td></tr>
-            <tr><td><code>Database:Provider</code></td><td><code>Oracle</code> | <code>SqlServer</code></td><td>appsettings / App Config / env</td></tr>
-            <tr><td><code>Database:CommandTimeout</code></td><td><code>300</code> (segundos)</td><td>appsettings / App Config</td></tr>
-            <tr><td><code>Database:ConnectionStringName</code></td><td><code>BlueprintDb</code></td><td>appsettings</td></tr>
-            <tr><td><code>ConnectionStrings:BlueprintDb</code></td><td>cadena Oracle o SQL Server</td><td><strong>Key Vault</strong> vía App Config · local: user-secrets</td></tr>
-            <tr><td><code>Conf:ApiKey</code></td><td>GUID / secreto</td><td><strong>Key Vault</strong> vía App Config · local: user-secrets</td></tr>
+            <tr><td><code>Conf:KeyVaultUri</code></td><td><code>https://keyvault-aiep-desa.vault.azure.net</code></td><td>appsettings / variable de entorno; vacío = no se lee Key Vault</td></tr>
+            <tr><td><code>Auth:UseManagedIdentity</code></td><td><code>true</code> | <code>false</code></td><td>appsettings (<code>true</code>) · <code>appsettings.Development.json</code> (<code>false</code>)</td></tr>
+            <tr><td><code>Auth:ManagedIdentityClientId</code></td><td>vacío = system-assigned</td><td>appsettings (sólo si usas una user-assigned)</td></tr>
+            <tr><td><code>Database:Connections:&lt;Nombre&gt;</code></td><td><code>OracleDb</code>, <code>SqlServerDb</code>… (una entrada por conexión)</td><td>appsettings (ver sección 3)</td></tr>
+            <tr><td>&nbsp;&nbsp;↳ <code>Provider</code></td><td><code>Oracle</code> | <code>SqlServer</code></td><td>appsettings</td></tr>
+            <tr><td>&nbsp;&nbsp;↳ <code>ConnectionStringName</code></td><td><code>OracleDb</code> (la clave dentro de <code>ConnectionStrings</code>)</td><td>appsettings</td></tr>
+            <tr><td>&nbsp;&nbsp;↳ <code>CommandTimeout</code></td><td><code>300</code> (segundos)</td><td>appsettings</td></tr>
+            <tr><td>&nbsp;&nbsp;↳ <code>ConnectionString</code></td><td>cadena literal (opcional)</td><td>respaldo sin Vault — ver sección 3</td></tr>
+            <tr><td><code>ConnectionStrings:&lt;Nombre&gt;</code></td><td>cadena Oracle o SQL Server</td><td><strong>Key Vault</strong> · local: user-secrets</td></tr>
+            <tr><td><code>Conf:ApiKey</code></td><td>GUID / secreto</td><td><strong>Key Vault</strong> · local: user-secrets</td></tr>
             <tr><td><code>Conf:ApiKeyHeaderName</code></td><td><code>x-xmsbs-apikey</code></td><td>appsettings</td></tr>
-            <tr><td><code>Conf:StoredProcedureName</code></td><td><code>PKG_BLUEPRINT.P_GET_RECURSO</code></td><td>appsettings / App Config (por entorno)</td></tr>
-            <tr><td><code>Conf:ListTenantId</code></td><td><code>[ "&lt;guid&gt;" ]</code></td><td>appsettings / App Config</td></tr>
+            <tr><td><code>Conf:StoredProcedureName</code></td><td><code>PKG_BLUEPRINT.P_GET_RECURSO</code></td><td>appsettings (por entorno: <code>appsettings.{Environment}.json</code>)</td></tr>
+            <tr><td><code>Conf:RecursoConnectionName</code></td><td><code>OracleDb</code> | <code>SqlServerDb</code></td><td>appsettings (<code>SqlServerDb</code> en <code>appsettings.Development.json</code>)</td></tr>
+            <tr><td><code>Conf:ListTenantId</code></td><td><code>[ "&lt;guid&gt;" ]</code></td><td>appsettings</td></tr>
             <tr><td><code>Cors:AllowedOrigins</code></td><td><code>[ "https://servicioalumno.aiep.cl" ]</code></td><td>appsettings</td></tr>
           </tbody>
         </table>
@@ -722,33 +746,74 @@ List&lt;RecursoEntity&gt;   ── AutoMapper ──▶  List&lt;Recurso&gt; (DT
       <pre><code>appsettings.json
   → appsettings.{Environment}.json
     → user-secrets            (solo Development)
-      → variables de entorno  (ConnectionStrings__BlueprintDb, Database__Provider, Conf__ApiKey)
-        → Azure App Configuration + Key Vault   (entornos desplegados: gana)</code></pre>
+      → variables de entorno  (ConnectionStrings__OracleDb, Conf__RecursoConnectionName, Conf__ApiKey)
+        → Key Vault directo   (cargado una vez al arrancar; si resuelve algo, gana)</code></pre>
+      <p>Key Vault se carga <strong>antes</strong> de <code>AddBlueprintRepository</code> (esa extensión resuelve <code>ConnectionStrings:&lt;Nombre&gt;</code> al registrar cada conexión). Si el Vault no responde, la app no se cae: sigue con lo que haya en las capas de arriba (ver "Si no hay acceso al Vault", más abajo).</p>
 
-      <h3>Desarrollo local (sin Azure)</h3>
-      <p>En <code>Development</code>, <code>AzureAppConfig:Endpoint</code> está vacío y App Config se omite. Define lo sensible con user-secrets:</p>
+      <h3>Desarrollo local</h3>
+      <p>En <code>Development</code>, <code>Auth:UseManagedIdentity = false</code>: <code>AzureCredentialFactory</code> usa tu identidad local (Visual Studio o <code>az login</code>) para leer Key Vault al arrancar. Si tu cuenta tiene acceso al Vault, no necesitas configurar nada más. Si no lo tiene —o no hay red— la app <strong>no se cae</strong>: queda un warning y sigue con el respaldo oficial, <code>dotnet user-secrets</code> (nunca se sube al repo):</p>
       <pre><code>cd AIEP.Application.Api.Blueprint
-dotnet user-secrets set "ConnectionStrings:BlueprintDb" "Data Source=...;User Id=...;Password=...;"
-dotnet user-secrets set "Conf:ApiKey" "CD1462A2-F8D0-49D3-91A2-123756434907"</code></pre>
-      <p>Elige el motor en <code>appsettings.Development.json</code> (<code>"Database": { "Provider": "SqlServer" }</code>) o con <code>Database__Provider=Oracle</code>.</p>
+dotnet user-secrets init                               <span class="c"># una sola vez por proyecto (ya tiene UserSecretsId)</span>
+dotnet user-secrets set "ConnectionStrings:SqlServerDb" "cadena-local"
+dotnet user-secrets set "Conf:ApiKey" "valor-local"</code></pre>
+      <p>Son las mismas claves que entrega Key Vault (<code>ConnectionStrings:&lt;Nombre&gt;</code>, <code>Conf:ApiKey</code>) y la misma prioridad: si el Vault llega a resolver algo, gana. Elige con qué conexión corre el feature de ejemplo en <code>appsettings.Development.json</code> (<code>"Conf": { "RecursoConnectionName": "SqlServerDb" }</code>) o con <code>Conf__RecursoConnectionName=OracleDb</code>.</p>
 
-      <h3>Azure App Configuration: esquema de claves</h3>
-      <p>Prefijo por servicio <code>Blueprint:</code> (un store compartido por varios microservicios) y <strong>label = entorno</strong>. El host hace dos <code>Select</code>: primero sin label (valores compartidos), luego el del entorno (override).</p>
+      <h3>Key Vault directo: esquema de secretos</h3>
+      <p><code>Program.cs</code> carga los secretos del Vault <strong>directo</strong> a <code>IConfiguration</code>, una sola vez al arrancar, con <code>AddAzureKeyVault(uri, credencial, new BlueprintKeyVaultSecretManager())</code>. El Vault es compartido por varios servicios de AIEP, así que el manager sólo carga los secretos <code>blueprint-*</code> y mapea el resto del nombre a la clave real. <strong>Un secreto por cada cadena de conexión</strong>, nunca uno compartido:</p>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Clave en App Config</th><th>Tipo</th></tr></thead>
+          <thead><tr><th>Secreto en Key Vault</th><th>Clave en <code>IConfiguration</code></th></tr></thead>
           <tbody>
-            <tr><td><code>Blueprint:Database:Provider</code></td><td>valor</td></tr>
-            <tr><td><code>Blueprint:Conf:StoredProcedureName</code></td><td>valor</td></tr>
-            <tr><td><code>Blueprint:ConnectionStrings:BlueprintDb</code></td><td>Key Vault reference → <code>blueprint-db-connectionstring</code></td></tr>
-            <tr><td><code>Blueprint:Conf:ApiKey</code></td><td>Key Vault reference → <code>blueprint-api-key</code></td></tr>
-            <tr><td><code>Blueprint:Sentinel</code></td><td>valor (cambiarlo dispara el refresco cada 5 min)</td></tr>
+            <tr><td><code>blueprint-oracledb-connectionstring</code></td><td><code>ConnectionStrings:OracleDb</code></td></tr>
+            <tr><td><code>blueprint-sqlserverdb-connectionstring</code></td><td><code>ConnectionStrings:SqlServerDb</code></td></tr>
+            <tr><td><code>blueprint-api-key</code></td><td><code>Conf:ApiKey</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>El patrón <code>blueprint-&lt;nombre&gt;-connectionstring</code> es genérico: agregar una conexión nueva (ver sección 3) sólo requiere su secreto en el Vault; no toca <code>BlueprintKeyVaultSecretManager</code> ni ningún otro código. La búsqueda de configuración no distingue mayúsculas, por eso <code>oracledb</code> en el nombre del secreto resuelve <code>ConnectionStrings:OracleDb</code>.</p>
+
+      <h3>Si no hay acceso al Vault</h3>
+      <p><code>Program.cs</code> envuelve la carga en un <code>try/catch</code>: si el Vault no es alcanzable (sin acceso asignado, sin red…) se registra un warning y <strong>el arranque sigue</strong> con lo que haya en <code>appsettings*.json</code>, variables de entorno o user-secrets. Nunca se cae la app por no llegar al Vault.</p>
+      <span class="filename">AIEP.Application.Api.Blueprint/Program.cs</span>
+<pre><code><span class="c">// Credencial explícita (ver más abajo)</span>
+var azureCredential = AzureCredentialFactory.Create(builder.Configuration);
+
+var keyVaultUri = builder.Configuration["Conf:KeyVaultUri"];
+if (!string.IsNullOrWhiteSpace(keyVaultUri))
+{
+    try
+    {
+        <span class="c">// Una sola vez, al arrancar; ANTES de AddBlueprintRepository</span>
+        builder.Configuration.AddAzureKeyVault(
+            new Uri(keyVaultUri),
+            azureCredential,
+            new BlueprintKeyVaultSecretManager());
+    }
+    catch (Exception ex)
+    {
+        <span class="c">// el arranque sigue con appsettings / user-secrets / variables de entorno</span>
+        logger.Warn(ex,
+            "No se pudo leer Key Vault ({KeyVaultUri}) -- se usaran appsettings/user-secrets/" +
+            "variables de entorno como respaldo (ConnectionStrings:&lt;Nombre&gt;, Conf:ApiKey).",
+            keyVaultUri);
+    }
+}</code></pre>
+
+      <h3>Credencial de Azure (<code>AzureCredentialFactory</code>)</h3>
+      <p>La credencial es explícita a propósito: una cadena implícita como <code>DefaultAzureCredential</code> prueba varias credenciales en silencio y no deja saber si la Managed Identity de la máquina realmente está funcionando. <code>AzureCredentialFactory</code> obliga a declarar cuál se usa:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th><code>Auth:UseManagedIdentity</code></th><th>Credencial</th><th>Dónde aplica</th></tr></thead>
+          <tbody>
+            <tr><td><code>true</code> (por defecto en despliegues)</td><td><code>ManagedIdentityCredential</code>, system-assigned o user-assigned (<code>Auth:ManagedIdentityClientId</code>)</td><td>Azure (App Service / Container Apps / AKS) <strong>y</strong> servidores on-prem con el agente de Azure Arc</td></tr>
+            <tr><td><code>false</code> (Development)</td><td><code>ChainedTokenCredential</code>: <code>VisualStudioCredential</code> → <code>AzureCliCredential</code></td><td>Tu equipo (Visual Studio o <code>az login</code>); nunca en servidor</td></tr>
           </tbody>
         </table>
       </div>
       <div class="note">
         <span class="label">Identidad</span>
-        <p>La identidad que ejecuta el servicio necesita los roles <code>App Configuration Data Reader</code> y <code>Key Vault Secrets User</code>. Funciona con Managed Identity (Azure) y con la identidad de <strong>Azure Arc</strong> (on-prem): <code>DefaultAzureCredential</code> la detecta sola. En local usa <code>az login</code> o Visual Studio. Detalle completo en <code>README.md</code>.</p>
+        <p>La identidad que ejecuta el servicio necesita acceso de lectura al Key Vault. <strong>No asumas que el Vault usa RBAC</strong>: revisa su modo antes de dar acceso (<code>az keyvault show --name &lt;vault&gt; --query properties.enableRbacAuthorization</code>). Con RBAC (<code>enableRbacAuthorization: true</code>) basta el rol <code>Key Vault Secrets User</code>; con Access Policy (<code>false</code>) se agrega una política propia del Vault (<code>az keyvault set-policy --name &lt;vault&gt; --object-id &lt;id&gt; --secret-permissions get list</code>). El código es idéntico en ambos casos: la autorización la decide Azure del lado del servidor.</p>
+        <p><strong>Azure Arc.</strong> En un servidor on-prem con el agente de Azure Arc instalado, la máquina obtiene su propia Managed Identity, expuesta vía <code>IDENTITY_ENDPOINT</code> / <code>IMDS_ENDPOINT</code> igual que en Azure; <code>AzureCredentialFactory</code> usa el mismo <code>ManagedIdentityCredential</code>. Dale a la identidad de la máquina Arc el mismo acceso al Vault. La cuenta del proceso debe pertenecer al grupo <code>himds</code> (Linux) o tener acceso al archivo de clave de Arc (Windows). Detalle completo en <code>README.md</code>.</p>
       </div>
 
       <h3>Opciones tipadas</h3>
@@ -757,8 +822,8 @@ dotnet user-secrets set "Conf:ApiKey" "CD1462A2-F8D0-49D3-91A2-123756434907"</co
         <table>
           <thead><tr><th>Clase</th><th>Sección</th><th>Se inyecta como</th></tr></thead>
           <tbody>
-            <tr><td><code>DatabaseOptions</code></td><td><code>Database</code></td><td><code>IOptions&lt;DatabaseOptions&gt;</code></td></tr>
-            <tr><td><code>ApiKeyOptions</code></td><td><code>Conf</code></td><td><code>IOptionsMonitor&lt;ApiKeyOptions&gt;</code> (refrescable)</td></tr>
+            <tr><td><code>DatabaseOptions</code></td><td><code>Database:Connections:&lt;Nombre&gt;</code></td><td>Opciones <strong>con nombre</strong>, una por conexión (<code>IOptionsMonitor&lt;DatabaseOptions&gt;.Get("&lt;Nombre&gt;")</code>). Normalmente no las inyectas: <code>AddBlueprintRepository</code> las usa para armar cada <code>IDbConnectionFactory</code> keyed.</td></tr>
+            <tr><td><code>ApiKeyOptions</code></td><td><code>Conf</code></td><td><code>IOptionsMonitor&lt;ApiKeyOptions&gt;</code> (recarga los cambios de appsettings; Key Vault se lee sólo al arrancar)</td></tr>
             <tr><td><code>TenantOptions</code></td><td><code>Conf</code></td><td><code>IOptionsMonitor&lt;TenantOptions&gt;</code></td></tr>
           </tbody>
         </table>
@@ -768,10 +833,10 @@ dotnet user-secrets set "Conf:ApiKey" "CD1462A2-F8D0-49D3-91A2-123756434907"</co
     <section id="motor">
       <span class="sec-kicker">Fundamento 3</span>
       <h2>Motor: Oracle vs SQL Server</h2>
-      <p>El motor se elige <strong>en tiempo de ejecución</strong> con <code>Database:Provider</code>. Tu repositorio se escribe <strong>una sola vez</strong> contra <code>System.Data.Common</code> (<code>DbConnection</code>, <code>DbCommand</code>, <code>DbParameter</code>); la fábrica resuelve el driver concreto.</p>
+      <p>El motor se elige <strong>en tiempo de ejecución</strong>, por conexión, con <code>Database:Connections:&lt;Nombre&gt;:Provider</code>. Tu repositorio se escribe <strong>una sola vez</strong> contra <code>System.Data.Common</code> (<code>DbConnection</code>, <code>DbCommand</code>, <code>DbParameter</code>); la fábrica de esa conexión resuelve el driver concreto.</p>
 
       <pre><code>IDbConnectionFactory
- ├─ Provider            Oracle | SqlServer   (de DatabaseOptions)
+ ├─ Provider            Oracle | SqlServer   (de DatabaseOptions de esa conexión)
  ├─ CommandTimeout      segundos
  ├─ CreateConnection()          → OracleConnection | SqlConnection
  ├─ PrepareStoredProcCommand()  → Oracle: BindByName = true ; SQL: no-op
@@ -801,12 +866,126 @@ dotnet user-secrets set "Conf:ApiKey" "CD1462A2-F8D0-49D3-91A2-123756434907"</co
       </div>
 
       <h3>Cómo cambiar de motor</h3>
+      <p>Cada conexión ya trae su propio motor (<code>Database:Connections:&lt;Nombre&gt;:Provider</code>), así que cambiar de motor es apuntar el feature a otra conexión declarada. En el feature de ejemplo lo decide <code>Conf:RecursoConnectionName</code>: <code>OracleDb</code> en QA y Producción, <code>SqlServerDb</code> en Development, para probar contra el otro motor sin tocar código.</p>
       <pre><code><span class="c"># local</span>
-$env:Database__Provider = "Oracle"     <span class="c"># o "SqlServer"</span>
+$env:Conf__RecursoConnectionName = "SqlServerDb"     <span class="c"># o "OracleDb"</span>
 dotnet run
 
-<span class="c"># entorno desplegado: cambiar Blueprint:Database:Provider en App Configuration</span>
-<span class="c"># (con el label del entorno) y tocar Blueprint:Sentinel para refrescar.</span></code></pre>
+<span class="c"># entorno desplegado: cambiar Conf:RecursoConnectionName en appsettings.{Environment}.json</span>
+<span class="c"># (o la variable de entorno Conf__RecursoConnectionName) y reciclar la app.</span></code></pre>
+
+      <h3>Más de una conexión a la vez</h3>
+      <p>Cada entrada de <code>Database:Connections</code> es una conexión con nombre, con su propio proveedor, timeout y secreto de Key Vault. Pueden estar activas varias a la vez, por ejemplo Oracle y SQL Server:</p>
+      <span class="filename">AIEP.Application.Api.Blueprint/appsettings.json</span>
+<pre><code>"Database": {
+  "Connections": {
+    "OracleDb":    { "Provider": "Oracle",    "ConnectionStringName": "OracleDb",    "CommandTimeout": 300 },
+    "SqlServerDb": { "Provider": "SqlServer", "ConnectionStringName": "SqlServerDb", "CommandTimeout": 300 }
+  }
+},
+"Conf": { "RecursoConnectionName": "OracleDb" }</code></pre>
+      <p>Por cada entrada, <code>AddBlueprintRepository</code> enlaza sus <code>DatabaseOptions</code> <strong>con nombre</strong> (validadas al arrancar) y registra un <code>IDbConnectionFactory</code> <strong>keyed</strong> con ese mismo nombre (<code>AddKeyedSingleton</code>). Tu repositorio la pide con <code>[FromKeyedServices("OracleDb")] IDbConnectionFactory</code>.</p>
+      <p><code>IRecursoRepository</code> sigue el mismo patrón un nivel más arriba: queda registrado <strong>keyed</strong> para <code>"OracleDb"</code> y <code>"SqlServerDb"</code> (ambos motores resolubles en paralelo vía <code>[FromKeyedServices]</code>) y <strong>además sin key</strong>, delegando en la conexión que indique <code>Conf:RecursoConnectionName</code>: es la que usan <code>RecursoLogic</code> y <code>RecursoController</code> hoy. Puede apuntar a cualquier nombre declarado en <code>Database:Connections</code>.</p>
+      <span class="filename">AIEP.Application.Repository/ServiceCollectionExtensions.cs</span>
+<pre><code>public static IServiceCollection AddBlueprintRepository(this IServiceCollection services, IConfiguration configuration)
+{
+    <span class="c">// Una IDbConnectionFactory keyed por cada entrada de Database:Connections</span>
+    var connectionsSection = configuration.GetSection(DatabaseOptions.ConnectionsSectionName);
+    foreach (var connectionSection in connectionsSection.GetChildren())
+    {
+        var connectionName = connectionSection.Key;
+
+        <span class="c">// Sin cadena usable (ni Vault ni valor literal): se omite, no rompe el arranque</span>
+        var candidate = new DatabaseOptions();
+        connectionSection.Bind(candidate);
+        if (string.IsNullOrWhiteSpace(candidate.ResolveConnectionString(configuration)))
+        {
+            continue;
+        }
+
+        services.AddOptions&lt;DatabaseOptions&gt;(connectionName)
+                .Bind(connectionSection)
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+        services.AddKeyedSingleton&lt;IDbConnectionFactory&gt;(connectionName, (sp, key) =&gt;
+        {
+            var namedOptions = sp.GetRequiredService&lt;IOptionsMonitor&lt;DatabaseOptions&gt;&gt;().Get((string)key!);
+            return new DbConnectionFactory(Microsoft.Extensions.Options.Options.Create(namedOptions), configuration);
+        });
+    }
+
+    RecursoRepository BuildRecursoRepository(IServiceProvider sp, string connectionName)
+    {
+        var connectionFactory = sp.GetRequiredKeyedService&lt;IDbConnectionFactory&gt;(connectionName);
+        var logger = sp.GetRequiredService&lt;ILogger&lt;RecursoRepository&gt;&gt;();
+        return new RecursoRepository(connectionFactory, configuration, logger);
+    }
+
+    <span class="c">// IRecursoRepository keyed por motor: ambos disponibles en paralelo</span>
+    services.AddKeyedScoped&lt;IRecursoRepository&gt;("OracleDb", (sp, _) =&gt; BuildRecursoRepository(sp, "OracleDb"));
+    services.AddKeyedScoped&lt;IRecursoRepository&gt;("SqlServerDb", (sp, _) =&gt; BuildRecursoRepository(sp, "SqlServerDb"));
+
+    <span class="c">// ...y sin key: delega en la conexión que indique Conf:RecursoConnectionName</span>
+    services.AddScoped&lt;IRecursoRepository&gt;(sp =&gt;
+    {
+        var recursoConnectionName = configuration.GetValue&lt;string&gt;("Conf:RecursoConnectionName") ?? "OracleDb";
+        return BuildRecursoRepository(sp, recursoConnectionName);
+    });
+
+    return services;
+}</code></pre>
+
+      <h3>Cómo se resuelve la cadena de cada conexión</h3>
+      <p><code>DatabaseOptions.ResolveConnectionString</code> intenta, en orden:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Fuente</th><th>Cuándo se usa</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><code>ConnectionStrings:&lt;ConnectionStringName&gt;</code></td><td>Lo que entrega Key Vault (cargado al arrancar). Si resuelve algo, <strong>gana siempre</strong>.</td></tr>
+            <tr><td>2</td><td><code>"ConnectionString"</code> literal, en la misma entrada</td><td>Sólo si lo anterior viene vacío: respaldo para quien no tiene acceso al Vault. Sin pasar por Vault en absoluto.</td></tr>
+            <tr><td>3</td><td>—</td><td>Si ninguna de las dos tiene valor, la conexión <strong>se omite</strong>: no se registra y no rompe el arranque. Sólo falla si algo la pide explícitamente después.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Para apagar una conexión a propósito, borra su nodo de <code>Database:Connections</code> o deja <code>ConnectionStringName</code> <strong>y</strong> <code>ConnectionString</code> vacíos: cualquiera de las dos formas es segura.</p>
+      <div class="warn">
+        <span class="label">Cuidado con el valor directo</span>
+        <p>Si el campo <code>ConnectionString</code> lleva usuario y clave reales y el archivo se commitea, la credencial queda en el historial de git. Escríbela en <code>appsettings.Development.json</code> (o un archivo propio por desarrollador) en vez de la base compartida; mejor aún, usa <code>dotnet user-secrets</code> (ver sección 2).</p>
+      </div>
+
+      <h3>Agregar una conexión nueva</h3>
+      <ol>
+        <li>Agrega su bloque a <code>Database:Connections</code>, por ejemplo <code>"CostosDb": { "Provider": "SqlServer", "ConnectionStringName": "CostosDb" }</code>.</li>
+        <li>Crea su secreto en Key Vault: <code>blueprint-costosdb-connectionstring</code>. No hay que tocar <code>BlueprintKeyVaultSecretManager</code> ni ningún otro código.</li>
+        <li>En el repositorio que la use, inyecta <code>[FromKeyedServices("CostosDb")] IDbConnectionFactory</code>.</li>
+      </ol>
+
+      <h3>Un controller por conexión: <code>RecursoLogicOracle</code> / <code>RecursoLogicSqlServer</code></h3>
+      <p>Cuando un proyecto real necesita dos controllers independientes, cada uno contra su propia BD, el blueprint trae un ejemplo de referencia: la misma lógica que <code>RecursoLogic</code>, pero pidiendo el repositorio de un motor explícito con <code>[FromKeyedServices]</code>.</p>
+      <span class="filename">AIEP.Application.Logic/Logic/RecursoLogicOracle.cs</span>
+<pre><code>public class RecursoLogicOracle
+{
+    private readonly IRecursoRepository _recursoRepository;
+    <span class="c">// ...</span>
+
+    public RecursoLogicOracle(
+        [FromKeyedServices("OracleDb")] IRecursoRepository recursoRepository,
+        IMapper mapper,
+        ILogger&lt;RecursoLogicOracle&gt; logger)
+    {
+        _recursoRepository = recursoRepository;
+        _mapper = mapper;
+        _logger = logger;
+    }
+
+    <span class="c">// GetRecursos(...) es idéntico al de RecursoLogic</span>
+}</code></pre>
+      <p><code>RecursoLogicSqlServer</code> es idéntica, con <code>[FromKeyedServices("SqlServerDb")]</code>. Ambas se registran en <code>Program.cs</code> con <code>builder.Services.AddScoped&lt;RecursoLogicOracle&gt;();</code> y <code>builder.Services.AddScoped&lt;RecursoLogicSqlServer&gt;();</code>.</p>
+      <div class="note">
+        <span class="label">Opcional</span>
+        <p>Son un ejemplo: si tu proyecto usa un solo motor, puedes borrarlas (junto con sus tests) sin afectar a <code>RecursoLogic</code> / <code>RecursoController</code>. El Controller correspondiente <strong>no viene incluido</strong>: se arma copiando <code>RecursoController</code> tal como se copiaría para <code>RecursoLogic</code> (ver sección 9).</p>
+      </div>
     </section>
 
     <section id="entidades">
@@ -973,7 +1152,7 @@ public class MapperConfig : Profile
         <table>
           <thead><tr><th>Miembro</th><th>Qué hace</th></tr></thead>
           <tbody>
-            <tr><td><code>OpenConnectionAsync(ct)</code></td><td>Crea y abre la <code>DbConnection</code> del motor activo.</td></tr>
+            <tr><td><code>OpenConnectionAsync(ct)</code></td><td>Crea y abre la <code>DbConnection</code> de la conexión con la que se construyó el repositorio.</td></tr>
             <tr><td><code>CreateStoredProcCommand(conn, sp)</code></td><td><code>CommandType.StoredProcedure</code> + <code>CommandTimeout</code> + ajustes del proveedor.</td></tr>
             <tr><td><code>AddParameter(cmd, name, value, dbType?, direction?, size?)</code></td><td>Parámetro escalar. <code>null</code> ⇒ <code>DBNull.Value</code>. <span class="pill">static</span></td></tr>
             <tr><td><code>AddRefCursor(cmd, name)</code></td><td>Cursor OUT (Oracle) o no-op (SQL Server).</td></tr>
@@ -981,7 +1160,8 @@ public class MapperConfig : Profile
             <tr><td><code>GetOutputString(cmd, name)</code></td><td>Lee un OUT param como texto (<code>DBNull</code> ⇒ <code>null</code>). <span class="pill">static</span></td></tr>
             <tr><td><code>ThrowIfSpError(codigo, mensaje)</code></td><td>Traduce <code>(P_CODIGO, P_MENSAJE)</code> a excepción de negocio.</td></tr>
             <tr><td><code>ToDataTable&lt;T&gt;(items)</code> · <code>AddStructuredParameter(...)</code></td><td>Opcionales, para Table-Valued Parameters (sólo SQL Server).</td></tr>
-            <tr><td><code>ConnectionFactory</code> · <code>Options</code> · <code>Logger</code></td><td>Propiedades protegidas.</td></tr>
+            <tr><td>Sobrecargas con <code>factory</code></td><td><code>OpenConnectionAsync(factory, ct)</code>, <code>CreateStoredProcCommand(factory, conn, sp)</code>, <code>AddRefCursor(factory, cmd, name)</code> y <code>AddStructuredParameter(factory, …)</code> reciben una conexión explícita, para un repositorio que usa <strong>dos conexiones a la vez</strong>: la principal usa las de siempre; la otra se inyecta aparte y se pasa aquí (ver FAQ).</td></tr>
+            <tr><td><code>ConnectionFactory</code> · <code>Logger</code></td><td>Propiedades protegidas.</td></tr>
           </tbody>
         </table>
       </div>
@@ -993,11 +1173,10 @@ public class MapperConfig : Profile
     private readonly string _sp;
 
     public AlumnoRepository(
-        IDbConnectionFactory factory,
-        IOptions&lt;DatabaseOptions&gt; dbOptions,
+        [FromKeyedServices("OracleDb")] IDbConnectionFactory factory,
         IConfiguration configuration,
         ILogger&lt;AlumnoRepository&gt; logger)
-        : base(factory, dbOptions, logger)
+        : base(factory, logger)
     {
         _sp = configuration.GetValue&lt;string&gt;("Conf:StoredProcedureName")
               ?? "PKG_BLUEPRINT.P_GET_ALUMNO";
@@ -1038,6 +1217,7 @@ public class MapperConfig : Profile
         return alumnos;
     }
 }</code></pre>
+      <p>El repositorio no elige su base: recibe un <code>IDbConnectionFactory</code>. Aquí lo pide <strong>keyed por nombre</strong> (<code>"OracleDb"</code>, porque Banner es Oracle); <code>RecursoRepository</code>, en cambio, lo recibe ya resuelto desde <code>AddBlueprintRepository</code> según <code>Conf:RecursoConnectionName</code> (ver <a href="#motor">sección 3</a>).</p>
 
       <h3>Contrato del SP: <code>P_CODIGO</code> / <code>P_MENSAJE</code></h3>
       <div class="table-wrap">
@@ -1056,17 +1236,15 @@ public class MapperConfig : Profile
       <span class="filename">AIEP.Application.Repository/ServiceCollectionExtensions.cs</span>
 <pre><code>public static IServiceCollection AddBlueprintRepository(this IServiceCollection services, IConfiguration configuration)
 {
-    services.AddOptions&lt;DatabaseOptions&gt;()
-            .Bind(configuration.GetSection(DatabaseOptions.SectionName))
-            .ValidateDataAnnotations();
+    <span class="c">// ... una IDbConnectionFactory keyed por cada entrada de Database:Connections (ver sección 3) ...</span>
 
-    services.AddSingleton&lt;IDbConnectionFactory, DbConnectionFactory&gt;();
+    <span class="c">// ... IRecursoRepository keyed ("OracleDb" / "SqlServerDb") y sin key, según Conf:RecursoConnectionName ...</span>
 
-    services.AddScoped&lt;IRecursoRepository, RecursoRepository&gt;();
     services.AddScoped&lt;IAlumnoRepository, AlumnoRepository&gt;();   <span class="c">// ← agrega tu repo aquí</span>
 
     return services;
 }</code></pre>
+      <p>No necesitas más: tu repositorio pide su conexión por key en el constructor (<code>[FromKeyedServices("OracleDb")] IDbConnectionFactory</code>) y esa fábrica ya la registró el <code>foreach</code> de <code>Database:Connections</code> (ver <a href="#motor">sección 3</a>).</p>
 
       <div class="note">
         <span class="label">Un SP con un solo result set</span>
@@ -1205,14 +1383,14 @@ if (alumno is null)
       <h2>Seguridad</h2>
       <p>Cuatro capas, en orden de ejecución:</p>
       <ol>
-        <li><strong>API key</strong> — <code>ApiKeyMiddleware</code> compara el header <code>x-xmsbs-apikey</code> contra <code>Conf:ApiKey</code> (de Key Vault, refrescable) y <code>Conf:AdditionalKeys</code>. Sin match ⇒ <code>401</code> texto plano. <code>OPTIONS</code> pasa directo.</li>
+        <li><strong>API key</strong> — <code>ApiKeyMiddleware</code> compara el header <code>x-xmsbs-apikey</code> contra <code>Conf:ApiKey</code> (secreto <code>blueprint-api-key</code> de Key Vault, cargado al arrancar) y <code>Conf:AdditionalKeys</code>. Sin match ⇒ <code>401</code> texto plano. <code>OPTIONS</code> pasa directo.</li>
         <li><strong>JWT Bearer</strong> — <code>[Authorize]</code> + <code>AddMicrosoftIdentityWebApiAuthentication</code>. Token de Azure AD (<code>AzureAd</code> en config, <strong>sin</strong> ClientSecret: sólo se validan tokens).</li>
         <li><strong>Scope</strong> — <code>[RequiredScope(...)]</code>. El token debe traer <code>IntegrationService.&lt;Servicio&gt;.Read</code> (o el que definas).</li>
         <li><strong>Tenant</strong> — <code>[RequireClaim("ClaimTenantId")]</code>. El claim <code>tid</code> debe estar en <code>Conf:ListTenantId</code>.</li>
       </ol>
 
       <h3>Rotación de API key sin downtime</h3>
-      <p>Publica la key nueva en <code>Conf:AdditionalKeys</code> (array). Durante la ventana se aceptan la vieja (<code>Conf:ApiKey</code>) y la nueva. Luego promueve la nueva a <code>Conf:ApiKey</code> y vacía <code>AdditionalKeys</code>. Como se leen por <code>IOptionsMonitor</code>, el cambio en App Config entra sin reiniciar (refresco cada 5 min al tocar <code>Blueprint:Sentinel</code>).</p>
+      <p>Publica la key nueva en <code>Conf:AdditionalKeys</code> (array, por ejemplo en <code>appsettings.{Environment}.json</code>): se lee por <code>IOptionsMonitor</code>, así que un cambio en el archivo entra sin reiniciar. Durante la ventana se aceptan la vieja (<code>Conf:ApiKey</code>) y la nueva. Luego promueve la nueva: actualiza el secreto <code>blueprint-api-key</code> en Key Vault —se lee <strong>una sola vez al arrancar</strong>, así que entra al reciclar la app— y vacía <code>AdditionalKeys</code>.</p>
 
       <h3>Swagger con auth</h3>
       <p>El UI ya trae el botón <em>Authorize</em> (definición <code>Bearer</code>). Pega <code>Bearer &lt;token&gt;</code> y prueba endpoints protegidos. Swagger se sirve <strong>antes</strong> del <code>ApiKeyMiddleware</code>, así que <code>/swagger</code> no pide API key.</p>
@@ -1289,7 +1467,7 @@ Assert.IsTrue(list[0].Vigente);      <span class="c">// "Y" → true</span>
 Assert.IsFalse(list[1].Vigente);     <span class="c">// DBNull → default(bool)</span></code></pre>
 
       <h4>3 · Fábrica — Oracle vs SQL Server</h4>
-      <p><code>DbConnectionFactoryTests</code> ya cubre: <code>CreateConnection()</code> devuelve el tipo correcto por <code>Provider</code>, <code>AddRefCursor</code> agrega parámetro en Oracle y <code>null</code> en SQL Server, y falla si falta la cadena. Cópialo si agregas comportamiento a la fábrica.</p>
+      <p><code>DbConnectionFactoryTests</code> ya cubre: <code>CreateConnection()</code> devuelve el tipo correcto por <code>Provider</code>, <code>AddRefCursor</code> agrega parámetro en Oracle y <code>null</code> en SQL Server, la cadena de Key Vault tiene prioridad sobre el valor directo, y falla si falta la cadena. Cópialo si agregas comportamiento a la fábrica. <code>ServiceCollectionExtensionsTests</code> cubre el registro de las conexiones keyed (cada entrada de <code>Database:Connections</code> con su nombre, <code>IRecursoRepository</code> por key y según <code>Conf:RecursoConnectionName</code>, y una conexión sin cadena usable que se omite sin romper el arranque); <code>RecursoLogicKeyedResolutionTests</code> confirma que las keys de <code>RecursoLogicOracle</code> / <code>RecursoLogicSqlServer</code> coinciden con las del registro.</p>
 
       <pre><code>dotnet test ApiBlueprint.sln -c Release --collect:"XPlat Code Coverage"</code></pre>
     </section>
@@ -1353,7 +1531,7 @@ Orígenes de datos: SQL Server on-premise · Oracle en OCI (primaria + réplica,
 
       <div class="note">
         <span class="label">Qué significa para tu servicio</span>
-        <p>El <code>Database:Provider</code> y la cadena de conexión de tu blueprint apuntan a la
+        <p>Cada conexión de <code>Database:Connections</code> (proveedor + cadena, esta última desde Key Vault) de tu blueprint apunta a la
            base del entorno donde despliegas (SQL Server on-premise u Oracle en OCI). El nombre
            público que consumirán los clientes sigue el patrón <code>services{entorno}.aiep.cl</code>;
            TLS y WAF ya los resuelve Cloudflare + Application Gateway antes de llegar a tu API.</p>
@@ -1400,12 +1578,13 @@ PROCEDURE P_GET_ALUMNO(
           <h3>Interfaz + repositorio</h3>
           <p><code>AIEP.Application.Repository/Repository/Alumno/IAlumnoRepository.cs</code>:</p>
 <pre><code>Task&lt;List&lt;AlumnoEntity&gt;&gt; GetAlumnoAsync(string valorDocumento, string tipoDocumento, CancellationToken ct = default);</code></pre>
-          <p>Y <code>AlumnoRepository.cs</code> heredando de <code>BaseRepository</code> — copia la anatomía de la <a href="#repositorio">sección 7</a>. Recuerda: cursores antes de escalares, OUT params fuera del <code>using</code> del reader, <code>ThrowIfSpError</code>, join por <code>ToLookup</code>.</p>
+          <p>Y <code>AlumnoRepository.cs</code> heredando de <code>BaseRepository</code> — copia la anatomía de la <a href="#repositorio">sección 7</a>. Recuerda: cursores antes de escalares, OUT params fuera del <code>using</code> del reader, <code>ThrowIfSpError</code>, join por <code>ToLookup</code>. Pide su conexión con <code>[FromKeyedServices("OracleDb")] IDbConnectionFactory</code> (Banner es Oracle; ver <a href="#motor">sección 3</a>).</p>
         </li>
         <li>
           <h3>Registrar el repo</h3>
           <p>En <code>ServiceCollectionExtensions.AddBlueprintRepository</code>:</p>
 <pre><code>services.AddScoped&lt;IAlumnoRepository, AlumnoRepository&gt;();</code></pre>
+          <p>No hace falta más: la fábrica <code>"OracleDb"</code> que pide el repositorio ya la registra <code>AddBlueprintRepository</code> a partir de <code>Database:Connections</code>.</p>
         </li>
         <li>
           <h3>Lógica</h3>
@@ -1427,26 +1606,26 @@ CreateMap&lt;Alumno, AlumnoEntity&gt;().ReverseMap()
           <h3>Registrar la lógica + configurar</h3>
 <pre><code><span class="c">// Program.cs</span>
 builder.Services.AddScoped&lt;AlumnoLogic&gt;();</code></pre>
-          <p>En <code>appsettings.json</code>: <code>Conf:StoredProcedureName = "PKG_BLUEPRINT.P_GET_ALUMNO"</code> (o el de SQL Server según entorno vía App Config).</p>
+          <p>En <code>appsettings.json</code>: <code>Conf:StoredProcedureName = "PKG_BLUEPRINT.P_GET_ALUMNO"</code> (o el de SQL Server, según el entorno: <code>appsettings.{Environment}.json</code> o variable de entorno).</p>
         </li>
         <li>
           <h3>Pruebas</h3>
           <p><code>AlumnoLogicTests</code> (con <code>LogicTestBase</code>) + un test de mapeo con <code>DataTableReader</code> (ver <a href="#pruebas">sección 13</a>). <code>dotnet test</code>.</p>
         </li>
         <li>
-          <h3>Probar en local, con los dos motores</h3>
-<pre><code>dotnet user-secrets set "ConnectionStrings:BlueprintDb" "&lt;cadena&gt;"
+          <h3>Probar en local</h3>
+<pre><code><span class="c"># respaldo oficial si no tienes acceso al Key Vault (si lo tienes, no hace falta)</span>
+dotnet user-secrets set "ConnectionStrings:OracleDb" "&lt;cadena&gt;"
 dotnet user-secrets set "Conf:ApiKey" "&lt;key&gt;"
 
-$env:Database__Provider = "Oracle";  dotnet run
+dotnet run
 <span class="c"># en otra terminal:</span>
 curl -k "https://localhost:7090/api/v1/alumno?valorDocumento=12345678&amp;tipoDocumento=RUT" ^
-  -H "Authorization: Bearer &lt;token&gt;" -H "x-xmsbs-apikey: &lt;key&gt;"
-
-<span class="c"># repetir con  $env:Database__Provider = "SqlServer"  — el DTO debe salir idéntico.</span></code></pre>
+  -H "Authorization: Bearer &lt;token&gt;" -H "x-xmsbs-apikey: &lt;key&gt;"</code></pre>
+          <p>Si tu feature también debe correr contra SQL Server, registra su repositorio igual que <code>IRecursoRepository</code> (keyed por motor, ver <a href="#motor">sección 3</a>), carga <code>ConnectionStrings:SqlServerDb</code> y repite la llamada: el DTO debe salir idéntico.</p>
           <div class="tip">
             <span class="label">Criterio de aceptación</span>
-            <p>Mismo JSON con <code>Provider=Oracle</code> y <code>Provider=SqlServer</code>; <code>400</code> si falta un parámetro; <code>401</code> sin API key; <code>403</code> si el <code>tid</code> no está autorizado; <code>200</code> con la lista y sus <code>Programas</code> anidados.</p>
+            <p>Mismo JSON contra cada conexión que soporte tu feature (<code>OracleDb</code> / <code>SqlServerDb</code>); <code>400</code> si falta un parámetro; <code>401</code> sin API key; <code>403</code> si el <code>tid</code> no está autorizado; <code>200</code> con la lista y sus <code>Programas</code> anidados.</p>
           </div>
         </li>
       </ol>
@@ -1463,10 +1642,31 @@ curl -k "https://localhost:7090/api/v1/alumno?valorDocumento=12345678&amp;tipoDo
       <p>No hay soporte en <code>BaseRepository</code> (los SP de sólo-lectura no lo necesitan). Si escribes: abre la conexión, <code>await using var tx = await conn.BeginTransactionAsync(ct)</code>, asigna <code>cmd.Transaction = tx</code>, y <code>await tx.CommitAsync(ct)</code>. Mantenlo dentro de un único método del repo.</p>
 
       <h3>Varios SP o varias conexiones en un método</h3>
-      <p>Abre una <code>DbConnection</code> por SP (o reusa la misma para varios comandos secuenciales). Si necesitas dos bases distintas a la vez, usa la variante de dos claves de conexión (<code>ConnectionStrings:BlueprintDb.Oracle</code> / <code>.SqlServer</code>) y resuelve la segunda con <code>IConfiguration.GetConnectionString</code> directamente.</p>
+      <p>Abre una <code>DbConnection</code> por SP (o reusa la misma para varios comandos secuenciales). Si necesitas dos bases distintas a la vez, declara cada una en <code>Database:Connections</code> (<a href="#motor">sección 3</a>) e inyecta las dos fábricas keyed en el repositorio: la "principal" va al constructor de <code>BaseRepository</code> y usa las sobrecargas de siempre; la otra se pasa explícita a las sobrecargas que reciben el <code>IDbConnectionFactory</code>.</p>
+<pre><code>public sealed class BancoUnificadoRepository : BaseRepository, IBancoUnificadoRepository
+{
+    private readonly IDbConnectionFactory _sqlServerFactory;
+
+    public BancoUnificadoRepository(
+        [FromKeyedServices("OracleDb")] IDbConnectionFactory oracleFactory,
+        [FromKeyedServices("SqlServerDb")] IDbConnectionFactory sqlServerFactory,
+        ILogger&lt;BancoUnificadoRepository&gt; logger)
+        : base(oracleFactory, logger)
+    {
+        _sqlServerFactory = sqlServerFactory;
+    }
+
+    public async Task&lt;Resultado&gt; HacerAlgoAsync(CancellationToken ct)
+    {
+        await using var oracleConn = await OpenConnectionAsync(ct);                  <span class="c">// la principal</span>
+        await using var sqlConn = await OpenConnectionAsync(_sqlServerFactory, ct);   <span class="c">// la explicita</span>
+        <span class="c">// ... usar ambas en la misma operacion</span>
+    }
+}</code></pre>
+      <p>Los nombres van fijos (<code>"OracleDb"</code>, <code>"SqlServerDb"</code>) porque una feature que siempre necesita las dos no depende del ambiente, a diferencia de <code>Conf:RecursoConnectionName</code>, que sí varía por entorno.</p>
 
       <h3>Consultas largas</h3>
-      <p><code>Database:CommandTimeout</code> (segundos) aplica a todos los comandos. Para un SP puntualmente lento, súbelo por entorno en App Config; no lo bajes globalmente.</p>
+      <p><code>Database:Connections:&lt;Nombre&gt;:CommandTimeout</code> (segundos) aplica a todos los comandos de esa conexión. Para un SP puntualmente lento, súbelo por entorno (<code>appsettings.{Environment}.json</code> o la variable de entorno <code>Database__Connections__&lt;Nombre&gt;__CommandTimeout</code>); no lo bajes para todo el servicio.</p>
 
       <h3>Performance con muchos registros</h3>
       <p><code>DbReaderMapper</code> ya lee la fila completa con <code>GetValues</code> y cachea los setters. Para volúmenes grandes en Oracle, sube <code>FetchSize</code> en la cadena o en el comando (<code>((OracleCommand)cmd).FetchSize</code> dentro de un adapter). Evita traer miles de filas por endpoint: pagina.</p>
@@ -1529,11 +1729,13 @@ BusinessException / BusinessValidationException                                 
 DbException / otras                                                              → 500</code></pre>
 
       <h4>Variables de entorno (local / contenedor)</h4>
-<pre><code>ASPNETCORE_ENVIRONMENT = Development | QA | Production
-Database__Provider     = Oracle | SqlServer
-ConnectionStrings__BlueprintDb = &lt;cadena&gt;
-Conf__ApiKey           = &lt;key&gt;
-AzureAppConfig__Endpoint = https://appcs-...   (vacío = no usar App Config)</code></pre>
+<pre><code>ASPNETCORE_ENVIRONMENT         = Development | QA | Production
+ConnectionStrings__OracleDb    = &lt;cadena&gt;
+ConnectionStrings__SqlServerDb = &lt;cadena&gt;
+Conf__ApiKey                   = &lt;key&gt;
+Conf__RecursoConnectionName    = OracleDb | SqlServerDb
+Conf__KeyVaultUri              = https://keyvault-...   (vacío = no leer Key Vault)
+Auth__UseManagedIdentity       = true | false</code></pre>
 
       <p style="margin-top:2rem; color:var(--text-muted); font-size:.9rem;">Fuente canónica y versionada: <code>docs/MANUAL-DESARROLLADOR.md</code> en el repo del blueprint. Renombrado <code>Blueprint → MiServicio</code> y provisión de Azure: <code>README.md</code>.</p>
     </section>
@@ -1903,5 +2105,69 @@ AzureAppConfig__Endpoint = https://appcs-...   (vacío = no usar App Config)</co
     }, { rootMargin: '-10% 0px -80% 0px', threshold: 0 });
 
     ids.forEach(function (id) { obs.observe(document.getElementById(id)); });
+  })();
+</script>
+
+<script>
+  (function () {
+    // Capturas de pantalla: si un archivo de assets/ no está disponible (por ejemplo, al abrir el
+    // manual fuera de su carpeta), el ícono de imagen rota se reemplaza por un marcador con el
+    // estilo del manual. Si la imagen carga, no se toca nada.
+    var DOCS = {
+      'registro-app-lemmineduc': 'Manual_Registro_App_IntegracionLemMineduc_DEV.docx',
+      'bd-api-carreras': 'Manual_Instalacion_BD_PROD_API_Carreras.docx',
+      'iis-api-carreras': 'Manual_Instalacion_IIS_PROD_API_Consulta_Carreras.docx',
+      'apim-api-carreras': 'Manual_Publicacion_APIM_API_Carreras.docx',
+      'appgw-conciliacion-pago': 'Manual_Configuracion_App_Gateway_PROD_Conciliacion_Pago.docx'
+    };
+    var ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
+    var RE = /manuales\/([^\/]+)\/img-(\d+)\./;
+
+    var imgs = Array.prototype.slice.call(document.querySelectorAll('img.step-shot'));
+    var total = {};
+    imgs.forEach(function (img) {
+      var m = (img.getAttribute('src') || '').match(RE);
+      if (m) total[m[1]] = (total[m[1]] || 0) + 1;
+    });
+
+    function placeholder(img) {
+      if (!img.parentNode) return;
+      var label = img.getAttribute('alt') || 'Captura de pantalla';
+      var m = (img.getAttribute('src') || '').match(RE);
+
+      var box = document.createElement('div');
+      box.className = 'shot-missing';
+      box.setAttribute('role', 'img');
+      box.setAttribute('aria-label', label);
+      box.innerHTML = '<span class="shot-missing-icon">' + ICON + '</span>' +
+        '<span class="shot-missing-text"><strong></strong><span></span></span>';
+      box.querySelector('strong').textContent = label;
+
+      var sub = box.querySelector('.shot-missing-text > span');
+      if (m) {
+        sub.appendChild(document.createTextNode('Captura ' + parseInt(m[2], 10) + ' de ' + total[m[1]] + ' · '));
+        if (DOCS[m[1]]) {
+          var a = document.createElement('a');
+          a.href = DOCS[m[1]];
+          a.textContent = 'abrir documento original';
+          sub.appendChild(a);
+        } else {
+          sub.appendChild(document.createTextNode('ver documento original'));
+        }
+      } else {
+        sub.appendChild(document.createTextNode('Imagen no incluida en esta copia'));
+      }
+      img.parentNode.replaceChild(box, img);
+    }
+
+    function check(img) {
+      if (img.complete && img.naturalWidth === 0) placeholder(img);
+    }
+
+    imgs.forEach(function (img) {
+      check(img);
+      img.addEventListener('error', function () { placeholder(img); });
+    });
+    window.addEventListener('load', function () { imgs.forEach(check); });
   })();
 </script>
