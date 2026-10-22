@@ -30,7 +30,8 @@ try
     // AddBlueprintRepository: esa extension resuelve ConnectionStrings:<Nombre> al registrar cada
     // conexion.
     //
-    // Si el Vault no es alcanzable (ej. un desarrollador sin rol RBAC asignado), no debe tirar
+    // Si el Vault no es alcanzable (ej. un desarrollador sin acceso asignado -- RBAC o access
+    // policy, segun el modo del Vault, ver README "Identidad"), no debe tirar
     // abajo el arranque completo: se registra un warning y la app sigue con lo que ya haya en
     // appsettings/user-secrets/variables de entorno (ResolveConnectionString y Conf:ApiKey usan
     // esa misma cadena de prioridad -- ver README "Si no tienes acceso al Key Vault").

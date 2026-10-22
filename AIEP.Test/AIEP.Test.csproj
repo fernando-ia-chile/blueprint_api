@@ -7,10 +7,11 @@
     <RootNamespace>AIEP.Test</RootNamespace>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <!-- NUnit2005 (NUnit.Analyzers 4.15, no sonaba en la 4.3 anterior): sugiere el modelo de
-         constraint (Assert.That(...)) en vez del clasico (Assert.AreEqual). Se mantiene el
-         clasico a proposito por consistencia con el Usings.cs institucional (ver README.md). -->
-    <NoWarn>$(NoWarn);NUnit2005</NoWarn>
+    <!-- NUnit2005/NUnit2031 (NUnit.Analyzers 4.15, no sonaban en la 4.3 anterior): sugieren el
+         modelo de constraint (Assert.That(...)) en vez del clasico (Assert.AreEqual/AreNotSame).
+         Se mantiene el clasico a proposito por consistencia con el Usings.cs institucional (ver
+         README.md). -->
+    <NoWarn>$(NoWarn);NUnit2005;NUnit2031</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

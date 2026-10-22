@@ -26,7 +26,8 @@ namespace AIEP.Application.Repository.Options
         /// <summary>
         /// Cadena de conexion literal, escrita directo en <c>appsettings</c>. Es el respaldo
         /// cuando no se usa (o no se puede alcanzar) Key Vault -- por ejemplo, un desarrollador
-        /// sin rol asignado en el Vault. <see cref="ResolveConnectionString"/> solo la usa si
+        /// sin acceso asignado en el Vault (RBAC o access policy, segun su modo).
+        /// <see cref="ResolveConnectionString"/> solo la usa si
         /// <see cref="ConnectionStringName"/> no resuelve nada via Vault.
         /// </summary>
         public string? ConnectionString { get; set; }

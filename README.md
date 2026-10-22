@@ -149,7 +149,7 @@ necesita un motor, ambas clases (y sus tests) se pueden borrar sin afectar a
    ```json
    "OracleDb": { "Provider": "Oracle", "ConnectionString": "Data Source=...;User Id=...;Password=...;" }
    ```
-   Pensado para desarrolladores sin rol asignado en el Key Vault (pasa con algunas instalaciones
+   Pensado para desarrolladores sin acceso asignado en el Key Vault (pasa con algunas instalaciones
    de Visual Studio + Azure Arc) — pueden seguir trabajando sin tocar código ni esperar a que les
    den acceso, mientras QA/Producción sigan resolviendo por Vault normalmente.
 3. Si ninguna de las dos tiene valor, **esa conexión se omite por completo** — no se registra, y
@@ -231,7 +231,8 @@ Key Vault por request, a diferencia de `AIEP-Servicios-Sedes_AzArc`.
 
 ### Si no tienes acceso al Key Vault
 
-`Program.cs` envuelve la carga del Vault en un `try/catch`: si falla (sin rol RBAC asignado, sin
+`Program.cs` envuelve la carga del Vault en un `try/catch`: si falla (sin acceso asignado —
+RBAC o access policy, según el modo del Vault, ver "Identidad" abajo —, sin
 red, etc.), queda un `logger.Warn` y **el arranque sigue** con lo que ya haya en
 `appsettings*.json`, variables de entorno o `user-secrets` — nunca revienta la app por no tener
 acceso al Vault.
